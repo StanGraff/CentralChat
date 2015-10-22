@@ -1,0 +1,45 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context="centralsoft.uco.edu.centralchat.EditProfileActivity">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_centerInParent="true">
+
+        <ImageView
+            android:id="@+id/userIconEdit"
+            android:layout_width="100sp"
+            android:layout_height="100sp"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="10sp"
+            android:clickable="true"/>
+        <EditText
+            android:id="@+id/displayNameEdit"
+            android:layout_width="250sp"
+            android:layout_height="30sp"
+            android:background="@android:color/white"
+            android:gravity="center_horizontal"
+            android:layout_margin="10sp"
+            android:hint="Enter a Display Name"
+            android:inputType="textPersonName"/>
+
+        <Button
+            android:id="@+id/saveButton"
+            android:text="@string/save"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/colorPrimary"
+            android:layout_margin="10sp"
+            android:layout_gravity="center"/>
+
+    </LinearLayout>
+
+</RelativeLayout>

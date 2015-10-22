@@ -3,21 +3,22 @@ package centralsoft.uco.edu.centralchat;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
-import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
+public class EditProfileActivity extends AppCompatActivity {
 
     private ImageView image;
     private TextView nickname;
-    private Button submitBtn;
+    private Button saveBtn;
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
@@ -27,12 +28,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_edit_profile);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        image = (ImageView) findViewById(R.id.userIcon);
-        nickname = (TextView) findViewById(R.id.displayName);
-        submitBtn = (Button) findViewById(R.id.submit);
+        image = (ImageView) findViewById(R.id.userIconEdit);
+        nickname = (TextView) findViewById(R.id.displayNameEdit);
+        saveBtn = (Button) findViewById(R.id.saveButton);
 
 
         //if (sharedPreferencesProcessing.retrieveNickname(MainActivity.this) != null)
@@ -44,9 +45,9 @@ public class MainActivity extends AppCompatActivity {
 
         //}
 
-        if (sharedPreferencesProcessing.retrieveNickname(MainActivity.this) != null)
+        if (sharedPreferencesProcessing.retrieveNickname(EditProfileActivity.this) != null)
         {
-            nickname.setText(sharedPreferencesProcessing.retrieveNickname(MainActivity.this));
+            nickname.setText(sharedPreferencesProcessing.retrieveNickname(EditProfileActivity.this));
 
         }
 
@@ -62,60 +63,60 @@ public class MainActivity extends AppCompatActivity {
             image.setImageResource(R.drawable.user_icon1);
         }
 
-        image.setOnClickListener(new OnClickListener() {
+        image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dispatchTakePictureIntent();
             }
         });
 
-        submitBtn.setOnClickListener(new OnClickListener() {
+        saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 if (nickname.getText().toString().equals("")) {
-                    Toast.makeText(MainActivity.this, "Please Input the Display Name", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(EditProfileActivity.this, "Please Input the Display Name", Toast.LENGTH_SHORT).show();
                 }
-                else if (sharedPreferencesProcessing.retrieveImage(MainActivity.this) == null)
+                else if (sharedPreferencesProcessing.retrieveImage(EditProfileActivity.this) == null)
                 {
-                    Toast.makeText(MainActivity.this, "Please Select an Image", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(EditProfileActivity.this, "Please Select an Image", Toast.LENGTH_SHORT).show();
                 }
                 else
                 {
-                    sharedPreferencesProcessing.storeNickname(MainActivity.this, nickname.getText().toString());
-                    Intent intent = new Intent(MainActivity.this, ChatActivity.class);
-                    startActivity(intent);
+                    sharedPreferencesProcessing.storeNickname(EditProfileActivity.this, nickname.getText().toString());
+                    //Intent intent = new Intent(EditProfileActivity.this, ChatActivity.class);
+                    //startActivity(intent);
 
-                    //Authenticate with the server
-
-                    Toast.makeText(MainActivity.this, "Chat Activity Ready, " + sharedPreferencesProcessing.retrieveNickname(MainActivity.this), Toast.LENGTH_SHORT).show();
-                    Toast.makeText(MainActivity.this, "Device MAC: " + utils.getDeviceMacAddress(MainActivity.this), Toast.LENGTH_LONG).show();
+                    Toast.makeText(EditProfileActivity.this, "Your settings were successfully updated, " + sharedPreferencesProcessing.retrieveNickname(EditProfileActivity.this), Toast.LENGTH_SHORT).show();
                 }
             }
         });
-
     }
 
     @Override
-    public void onResume(){
-        super.onResume();
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        //getMenuInflater().inflate(R.menu.menu_edit_profile, menu);
+        return true;
+    }
 
-        if (sharedPreferencesProcessing.retrieveImage(this) != null)
-        {
-            //image.setImageBitmap(sharedPreferencesProcessing.retrieveImage(this));
-            image.setImageBitmap(utils.getRoundedShape(sharedPreferencesProcessing.retrieveImage(this)));
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        /*if (id == R.id.chat_rooms) {
+            Intent chatRoomsIntent = new Intent(this, ChatRoomsActivity.class);
+            startActivity(chatRoomsIntent);
+            return super.onOptionsItemSelected(item);
         }
-        else
-        {
-            image.setImageResource(R.drawable.user_icon1);
-        }
-        if (sharedPreferencesProcessing.retrieveNickname(MainActivity.this) != null)
-        {
-            nickname.setText(sharedPreferencesProcessing.retrieveNickname(MainActivity.this));
 
-        }
-
-
+        return super.onOptionsItemSelected(item);
+        */
+        return true;
     }
 
     @Override
@@ -135,7 +136,5 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
         }
     }
-
-
 
 }

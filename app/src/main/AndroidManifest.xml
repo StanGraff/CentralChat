@@ -2,7 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="centralsoft.uco.edu.centralchat" >
 
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
@@ -23,6 +24,14 @@
         <activity
             android:name=".ChatActivity"
             android:label="@string/title_activity_chat" >
+        </activity>
+        <activity
+            android:name=".ChatRoomsActivity"
+            android:label="@string/title_activity_chat_rooms" >
+        </activity>
+        <activity
+            android:name=".EditProfileActivity"
+            android:label="@string/title_activity_edit_profile" >
         </activity>
     </application>
 
