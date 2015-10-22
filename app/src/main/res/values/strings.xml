@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">CentralChat</string>
+
+    <string name="submit">Submit</string>
+    <string name="title_activity_chat">Chat</string>
+
+    <string name="proceed">Proceed</string>
+
+    <string name="action_settings">Settings</string>
+</resources>
