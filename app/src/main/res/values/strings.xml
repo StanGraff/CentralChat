@@ -4,6 +4,10 @@
     <string name="submit">Submit</string>
     <string name="title_activity_chat">Chat</string>
 
+
+
+    <string name="picture">Please select the source of your picture.</string>
+
     <string name="proceed">Proceed</string>
     <string name="save">Save</string>
 
@@ -13,4 +17,5 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_edit_profile">EditProfile</string>
+    <string name="title_activity_chat_rooms_fragment">ChatRoomsFragment</string>
 </resources>

@@ -35,6 +35,11 @@ public class ChatActivity extends AppCompatActivity {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
 
+    /*@Override
+    public void onBackPressed() {
+        moveTaskToBack(true);
+    }*/
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 

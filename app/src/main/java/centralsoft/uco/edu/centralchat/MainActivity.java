@@ -1,11 +1,16 @@
 package centralsoft.uco.edu.centralchat;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -17,9 +22,11 @@ public class MainActivity extends AppCompatActivity {
 
     private ImageView image;
     private TextView nickname;
-    private Button submitBtn;
+    private Button submitBtn, camera, device;
+    private AlertDialog alert;
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int SELECT_PICTURE_ACTIVITY_REQUEST_CODE = 0;
 
     SharedPreferencesProcessing sharedPreferencesProcessing = new SharedPreferencesProcessing();
     Utils utils = new Utils();
@@ -65,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         image.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                dispatchTakePictureIntent();
+                askPicture();
             }
         });
 
@@ -118,8 +125,24 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == SELECT_PICTURE_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK && null != data) {
+            Uri selectedImage = data.getData();
+            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+            Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
+            cursor.moveToFirst();
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            String picturePath = cursor.getString(columnIndex);
+            cursor.close();
+            Bitmap pictureObject = BitmapFactory.decodeFile(picturePath);
+
+            image.setImageBitmap(utils.getRoundedShape(pictureObject));
+
+            sharedPreferencesProcessing.storeImage(this, pictureObject);
+        }
+
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
@@ -134,6 +157,48 @@ public class MainActivity extends AppCompatActivity {
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
         }
+    }
+
+    private void askPicture() {
+
+        final LayoutInflater inflater = getLayoutInflater();
+        final View dialogueLayout = inflater.inflate(R.layout.ask_picture, null);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(dialogueLayout);
+
+
+        camera =  (Button) dialogueLayout.findViewById(R.id.camera);
+        device =  (Button) dialogueLayout.findViewById(R.id.device);
+
+        camera.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                dispatchTakePictureIntent();
+                if (MainActivity.this.alert != null) {
+                    MainActivity.this.alert.dismiss();
+
+                }
+
+            }
+        });
+
+        device.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                getPictureFromMemoryIntent();
+                if (MainActivity.this.alert != null) {
+                    MainActivity.this.alert.dismiss();
+                }
+
+            }
+        });
+        alert = builder.create();
+
+        alert.show();
+    }
+
+    private void getPictureFromMemoryIntent() {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        startActivityForResult(intent, SELECT_PICTURE_ACTIVITY_REQUEST_CODE);
     }
 
 
