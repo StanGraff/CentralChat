@@ -18,4 +18,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_edit_profile">EditProfile</string>
     <string name="title_activity_chat_rooms_fragment">ChatRoomsFragment</string>
+
+    <string name="send">Send</string>
 </resources>
