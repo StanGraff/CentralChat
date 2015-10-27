@@ -64,5 +64,10 @@ public class SharedPreferencesProcessing {
         }
     }
 
+    public void storeSessionIdNumber(Context ct)
+    {
+
+    }
+
 
 }
