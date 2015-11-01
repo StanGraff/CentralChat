@@ -67,7 +67,6 @@ public class ChatActivity extends AppCompatActivity {
             public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
                                            int arg2, long arg3) {
                 i = arg2;
-                Toast.makeText(ChatActivity.this, "delete item in position : " + arg2, Toast.LENGTH_SHORT).show();
                 deleteIndividual();
                 return false;
             }
