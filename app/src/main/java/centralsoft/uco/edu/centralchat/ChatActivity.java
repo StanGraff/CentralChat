@@ -49,10 +49,10 @@ public class ChatActivity extends AppCompatActivity {
         adapter = new MessageListAdapter(this, messageList);
         listViewMessages.setAdapter(adapter);
 
-       //Determine screen size
-       int screenSize = getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK;
+        //Determine screen size
+        int screenSize = getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK;
 
-       //If device is a tablet, set phoneDevice to false
+        //If device is a tablet, set phoneDevice to false
         if (screenSize == Configuration.SCREENLAYOUT_SIZE_LARGE || screenSize == Configuration.SCREENLAYOUT_SIZE_XLARGE)
             phoneDevice = false;
 
@@ -88,7 +88,7 @@ public class ChatActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
 
         //get the default Display object representing the screen
-        Display display = ((WindowManager)getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+        Display display = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
         Point screenSize = new Point(); // used to store screen size
         display.getRealSize(screenSize); // store size in screenSize
 
@@ -98,9 +98,7 @@ public class ChatActivity extends AppCompatActivity {
             // Inflate the menu; this adds items to the action bar if it is present.
             getMenuInflater().inflate(R.menu.menu_chat, menu);
             return true;
-        }
-        else
-        {
+        } else {
             return false;
         }
     }
@@ -117,12 +115,10 @@ public class ChatActivity extends AppCompatActivity {
             Intent editProfileIntent = new Intent(this, EditProfileActivity.class);
             startActivity(editProfileIntent);
             return super.onOptionsItemSelected(item);
-        }
-        else if (id == R.id.chat_rooms) {
+        } else if (id == R.id.chat_rooms) {
             Intent chatRoomsIntent = new Intent(this, ChatRoomsActivity.class);
             startActivity(chatRoomsIntent);
             return super.onOptionsItemSelected(item);
-        }
-        else return true;
+        } else return true;
     }
 }
