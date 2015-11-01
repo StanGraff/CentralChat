@@ -93,12 +93,12 @@ public class ChatActivity extends Fragment {
             public void onClick(View v) {
                 String myName = sharedPreferencesProcessing.retrieveNickname(getActivity());
                 String msg = inputMsg.getText().toString();
-                Message m = new Message(myName, msg, isMyMsg);
+                Message m = new Message(myName, msg, isMyMsg, utils.getDate());
                 messageList.add(m);
                 adapter.notifyDataSetChanged();
                 inputMsg.setText("");
 
-                Message s = new Message("Auto Response", "No other users in room", "0");
+                Message s = new Message("Auto Response", "No other users in room", "0", utils.getDate());
                 messageList.add(s);
                 adapter.notifyDataSetChanged();
             }

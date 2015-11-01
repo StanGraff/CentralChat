@@ -60,7 +60,7 @@ public class MessageListAdapter extends BaseAdapter {
 
         txtMsg.setText(m.getMsg());
         lblFrom.setText(m.getMsgFrom());
-        received.setText(m.getDate());
+        received.setText(m.getMsgDate());
 
         return convertView;
     }

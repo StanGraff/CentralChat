@@ -1,9 +1,5 @@
 package centralsoft.uco.edu.centralchat;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-
 /**
  * Created by Justin on 10/28/15.
  */
@@ -11,11 +7,13 @@ public class Message {
     private String msgFrom;
     private String msg;
     private String isMyMsg;
+    private String msgDate;
 
-    public Message(String msgFrom, String msg, String isMyMsg) {
+    public Message(String msgFrom, String msg, String isMyMsg, String msgDate) {
         this.msgFrom = msgFrom;
         this.msg = msg;
         this.isMyMsg = isMyMsg;
+        this.msgDate = msgDate;
     }
 
     public void setMsgFrom(String msgFrom) {
@@ -42,19 +40,7 @@ public class Message {
         return isMyMsg;
     }
 
-
-
-    public String getDate() {
-        //This gives the current date and time as numeric values formatted as shown below .
-        Calendar calendar = Calendar.getInstance();
-        String correct = "";
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy hh:mm a");
-        String currentDate = sdf.format(calendar.getTime());
-        //This gives the current day as a string. Ex: Monday, Tuesday, etc.
-        SimpleDateFormat sdf_ = new SimpleDateFormat("EEEE");
-        Date date = new Date();
-        String dayName = sdf_.format(date);
-        correct = ("" + dayName + " " + currentDate + "");
-        return correct;
+    public String getMsgDate() {
+        return msgDate;
     }
 }

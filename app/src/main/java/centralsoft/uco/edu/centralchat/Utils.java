@@ -9,6 +9,10 @@ import android.graphics.Shader;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
 /**
  * Created by Stanislav on 10/21/2015.
  */
@@ -33,6 +37,20 @@ public class Utils {
         // This will draw the image.
         c.drawCircle(bitmap.getWidth() / 2, bitmap.getHeight() / 2, bitmap.getWidth() / 2 - 2, paint);
         return circleBitmap;
+    }
+
+    public String getDate() {
+        //This gives the current date and time as numeric values formatted as shown below .
+        Calendar calendar = Calendar.getInstance();
+        String correct = "";
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy hh:mm a");
+        String currentDate = sdf.format(calendar.getTime());
+        //This gives the current day as a string. Ex: Monday, Tuesday, etc.
+        SimpleDateFormat sdf_ = new SimpleDateFormat("EEEE");
+        Date date = new Date();
+        String dayName = sdf_.format(date);
+        correct = ("" + dayName + " " + currentDate + "");
+        return correct;
     }
 
 }
