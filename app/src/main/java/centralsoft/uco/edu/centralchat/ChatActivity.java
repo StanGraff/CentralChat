@@ -1,30 +1,29 @@
 package centralsoft.uco.edu.centralchat;
 
 import android.app.AlertDialog;
+import android.app.Fragment;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
-import android.graphics.Point;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.AdapterView.OnItemLongClickListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatActivity extends AppCompatActivity {
+public class ChatActivity extends Fragment {
 
     private boolean phoneDevice = true; // used to force portrait mode
 
@@ -44,20 +43,21 @@ public class ChatActivity extends AppCompatActivity {
     Utils utils = new Utils();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat);
-        setTitle("Chat");
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
 
-        btnSend = (Button) findViewById(R.id.send);
-        inputMsg = (EditText) findViewById(R.id.message);
-        listViewMessages = (ListView) findViewById(R.id.messages_list);
+        View view = inflater.inflate(R.layout.activity_chat, container, false);
+        setHasOptionsMenu(true);
+
+        btnSend = (Button) view.findViewById(R.id.send);
+        inputMsg = (EditText) view.findViewById(R.id.message);
+        listViewMessages = (ListView) view.findViewById(R.id.messages_list);
 
         messageList = new ArrayList<Message>();
         temp = messageList = new ArrayList<Message>();
 
 
-        adapter = new MessageListAdapter(this, messageList);
+        adapter = new MessageListAdapter(getActivity(), messageList);
         listViewMessages.setAdapter(adapter);
 
 
@@ -81,9 +81,9 @@ public class ChatActivity extends AppCompatActivity {
             phoneDevice = false;
 
         if (phoneDevice)
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        Toast.makeText(ChatActivity.this, "Size " + messageList.size(), Toast.LENGTH_SHORT);
+        Toast.makeText(getActivity(), "Size " + messageList.size(), Toast.LENGTH_SHORT);
 
 
 
@@ -91,7 +91,7 @@ public class ChatActivity extends AppCompatActivity {
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String myName = sharedPreferencesProcessing.retrieveNickname(ChatActivity.this);
+                String myName = sharedPreferencesProcessing.retrieveNickname(getActivity());
                 String msg = inputMsg.getText().toString();
                 Message m = new Message(myName, msg, isMyMsg);
                 messageList.add(m);
@@ -105,6 +105,7 @@ public class ChatActivity extends AppCompatActivity {
         });
         //listMessages.add(m);
         //adapter.notifyDataSetChanged();
+        return view;
     }
 
     /*@Override
@@ -114,9 +115,9 @@ public class ChatActivity extends AppCompatActivity {
 
     private void deleteIndividual() {
 
-        final LayoutInflater inflater = getLayoutInflater();
+        final LayoutInflater inflater = getActivity().getLayoutInflater();
         final View dialogueLayout = inflater.inflate(R.layout.ask_picture, null);
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(dialogueLayout);
 
 
@@ -150,9 +151,9 @@ public class ChatActivity extends AppCompatActivity {
 
     private void deleteChat() {
 
-        final LayoutInflater inflater = getLayoutInflater();
+        final LayoutInflater inflater = getActivity().getLayoutInflater();
         final View dialogueLayout = inflater.inflate(R.layout.ask_picture, null);
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(dialogueLayout);
 
 
@@ -183,12 +184,13 @@ public class ChatActivity extends AppCompatActivity {
         alert.show();
     }
 
+
     @Override
     public void onPause() {
         super.onPause();  // Always call the superclass method first
 
         if (messageList != null) {
-            sharedPreferencesProcessing.storeChat((ArrayList<Message>) messageList, this);
+            sharedPreferencesProcessing.storeChat((ArrayList<Message>) messageList, getActivity());
         }
     }
 
@@ -196,9 +198,9 @@ public class ChatActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
 
-        if (sharedPreferencesProcessing.getChat(this) != null) {
-            if (messageList.size() <= 0 && sharedPreferencesProcessing.getChat(this).size() > 0) {
-                temp = sharedPreferencesProcessing.getChat(this);
+        if (sharedPreferencesProcessing.getChat(getActivity()) != null) {
+            if (messageList.size() <= 0 && sharedPreferencesProcessing.getChat(getActivity()).size() > 0) {
+                temp = sharedPreferencesProcessing.getChat(getActivity());
                 for (int i = 0; i < temp.size(); i++) {
                     messageList.add(temp.get(i));
                 }
@@ -210,10 +212,39 @@ public class ChatActivity extends AppCompatActivity {
 
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_chat, menu);
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            Intent editProfileIntent = new Intent(getActivity(), EditProfileActivity.class);
+            startActivity(editProfileIntent);
+            return super.onOptionsItemSelected(item);
+        } else if (id == R.id.chat_rooms) {
+            Intent chatRoomsIntent = new Intent(getActivity(), ChatRoomsActivity.class);
+            startActivity(chatRoomsIntent);
+            return super.onOptionsItemSelected(item);
+        } else if (id == R.id.clear_chat) {
+            deleteChat();
+            return super.onOptionsItemSelected(item);
+
+        } else return true;
+    }
+/*
+
     public boolean onCreateOptionsMenu(Menu menu) {
 
         //get the default Display object representing the screen
-        Display display = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+        Display display = ((WindowManager) getActivity().getSystemService(getActivity().WINDOW_SERVICE)).getDefaultDisplay();
         Point screenSize = new Point(); // used to store screen size
         display.getRealSize(screenSize); // store size in screenSize
 
@@ -221,7 +252,7 @@ public class ChatActivity extends AppCompatActivity {
         if (screenSize.x < screenSize.y) // x is width, y is hight
         {
             // Inflate the menu; this adds items to the action bar if it is present.
-            getMenuInflater().inflate(R.menu.menu_chat, menu);
+            getActivity().getMenuInflater().inflate(R.menu.menu_chat, menu);
             return true;
         } else {
             return false;
@@ -238,11 +269,11 @@ public class ChatActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            Intent editProfileIntent = new Intent(this, EditProfileActivity.class);
+            Intent editProfileIntent = new Intent(getActivity(), EditProfileActivity.class);
             startActivity(editProfileIntent);
             return super.onOptionsItemSelected(item);
         } else if (id == R.id.chat_rooms) {
-            Intent chatRoomsIntent = new Intent(this, ChatRoomsActivity.class);
+            Intent chatRoomsIntent = new Intent(getActivity(), ChatRoomsActivity.class);
             startActivity(chatRoomsIntent);
             return super.onOptionsItemSelected(item);
         } else if (id == R.id.clear_chat) {
@@ -251,4 +282,5 @@ public class ChatActivity extends AppCompatActivity {
 
         } else return true;
     }
+ */
 }

@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Please Select an Image", Toast.LENGTH_SHORT).show();
                 } else {
                     sharedPreferencesProcessing.storeNickname(MainActivity.this, nickname.getText().toString());
-                    Intent intent = new Intent(MainActivity.this, ChatActivity.class);
+                    Intent intent = new Intent(MainActivity.this, ShowChat.class);
 
                     startActivity(intent);
                     finish();
