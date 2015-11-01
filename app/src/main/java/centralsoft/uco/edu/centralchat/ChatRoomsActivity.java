@@ -28,7 +28,8 @@ public class ChatRoomsActivity extends AppCompatActivity {
             "Room 12",
             "Room 13",
             "Room 14",
-            "Room 15"
+            "Room 15",
+            "Room 16"
     };
 
     @Override
