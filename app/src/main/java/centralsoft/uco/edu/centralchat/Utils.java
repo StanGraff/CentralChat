@@ -14,9 +14,8 @@ import android.net.wifi.WifiManager;
  */
 public class Utils {
 
-    public String getDeviceMacAddress(Context ct)
-    {
-        WifiManager wifiManager = (WifiManager) ct.getSystemService(ct.WIFI_SERVICE);
+    public String getDeviceMacAddress(Context ct) {
+        WifiManager wifiManager = (WifiManager) ct.getSystemService(Context.WIFI_SERVICE);
         WifiInfo wInfo = wifiManager.getConnectionInfo();
         return wInfo.getMacAddress();
     }
@@ -27,7 +26,7 @@ public class Utils {
         paint.setStrokeWidth(5);
         Canvas c = new Canvas(circleBitmap);
         //This draw a circle of Gerycolor which will be the border of image.
-        c.drawCircle(bitmap.getWidth()/2, bitmap.getHeight()/2, bitmap.getWidth()/2, paint);
+        c.drawCircle(bitmap.getWidth() / 2, bitmap.getHeight() / 2, bitmap.getWidth() / 2, paint);
         BitmapShader shader = new BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
         paint.setAntiAlias(true);
         paint.setShader(shader);

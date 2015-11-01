@@ -1,7 +1,5 @@
 package centralsoft.uco.edu.centralchat;
 
-import android.graphics.Bitmap;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -12,18 +10,12 @@ import java.util.Date;
 public class Message {
     private String msgFrom;
     private String msg;
-    private boolean isMyMsg;
-    private Bitmap img;
+    private String isMyMsg;
 
-    public Message() {
-
-    }
-
-    public Message(String msgFrom, String msg, boolean isMyMsg, Bitmap img) {
+    public Message(String msgFrom, String msg, String isMyMsg) {
         this.msgFrom = msgFrom;
         this.msg = msg;
         this.isMyMsg = isMyMsg;
-        this.img = img;
     }
 
     public void setMsgFrom(String msgFrom) {
@@ -34,7 +26,7 @@ public class Message {
         this.msg = msg;
     }
 
-    public void setIsMyMsg(boolean isMyMsg) {
+    public void setIsMyMsg(String isMyMsg) {
         this.isMyMsg = isMyMsg;
     }
 
@@ -46,17 +38,10 @@ public class Message {
         return msg;
     }
 
-    public boolean isMyMsg() {
+    public String isMyMsg() {
         return isMyMsg;
     }
 
-    public void setImg(Bitmap img) {
-        this.img = img;
-    }
-
-    public Bitmap getImg() {
-        return img;
-    }
 
 
     public String getDate() {

@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.List;
@@ -47,7 +46,7 @@ public class MessageListAdapter extends BaseAdapter {
 
         LayoutInflater mInflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
 
-        if (messageList.get(position).isMyMsg()) {
+        if (messageList.get(position).isMyMsg().equals("1")) {
             convertView = mInflater.inflate(R.layout.sent_message_item, null);
 //            ImageView img = (ImageView) convertView.findViewById(R.id.userIcon);
 //            img.setImageResource(R.drawable.chat_central_logo);
@@ -55,7 +54,6 @@ public class MessageListAdapter extends BaseAdapter {
             convertView = mInflater.inflate(R.layout.incoming_message_item, null);
         }
 
-        ImageView img = (ImageView) convertView.findViewById(R.id.userIcon);
         TextView lblFrom = (TextView) convertView.findViewById(R.id.lblMsgFrom);
         TextView txtMsg = (TextView) convertView.findViewById(R.id.txtMsg);
         TextView received = (TextView) convertView.findViewById(R.id.date);
@@ -63,11 +61,6 @@ public class MessageListAdapter extends BaseAdapter {
         txtMsg.setText(m.getMsg());
         lblFrom.setText(m.getMsgFrom());
         received.setText(m.getDate());
-        if (m.getImg() == null) {
-            img.setImageResource(R.drawable.chat_central_logo);
-        } else {
-            img.setImageBitmap(m.getImg());
-        }
 
         return convertView;
     }
