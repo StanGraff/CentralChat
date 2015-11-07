@@ -3,13 +3,12 @@
     package="centralsoft.uco.edu.centralchat" >
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
-
 
     <application
         android:allowBackup="true"
@@ -24,11 +23,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ChatActivity"
-            android:label="@string/title_activity_chat" >
-        </activity>
-        <activity
+          <activity
             android:name=".ChatRoomsActivity"
             android:label="@string/title_activity_chat_rooms" >
         </activity>
@@ -36,6 +31,9 @@
             android:name=".EditProfileActivity"
             android:label="@string/title_activity_edit_profile" >
         </activity>
+        <activity android:name=".ShowChat" >
+        </activity>
+
     </application>
 
 </manifest>

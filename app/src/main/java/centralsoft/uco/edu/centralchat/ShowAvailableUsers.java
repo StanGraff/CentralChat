@@ -1,59 +1,59 @@
 package centralsoft.uco.edu.centralchat;
 
+import android.app.Fragment;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class ChatRoomsActivity extends AppCompatActivity {
+public class ShowAvailableUsers extends Fragment {
 
-    private ListView chatRoomList;
+    private ListView userList;
 
-    String[] listOfRooms = {
-            "Room 1",
-            "Room 2",
-            "Room 3",
-            "Room 4",
-            "Room 5",
-            "Room 6",
-            "Room 7",
-            "Room 8",
-            "Room 9",
-            "Room 10",
-            "Room 11",
-            "Room 12",
-            "Room 13",
-            "Room 14",
-            "Room 15",
-            "Room 16"
+    String[] listOfUsers = {
+            "User 1",
+            "User 2",
+            "User 3",
+            "User 4",
+            "User 5",
+            "User 6",
+            "User 7",
+            "User 8",
+            "User 9",
+            "User 10",
+            "User 11",
+            "User 12",
+            "User 13",
+            "User 14",
+            "User 15"
     };
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat_rooms);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
 
-        ChatRoomListAdapter adapter = new ChatRoomListAdapter(this, listOfRooms);
-        chatRoomList = (ListView) findViewById(R.id.roomList);
-        chatRoomList.setAdapter(adapter);
+        View view = inflater.inflate(R.layout.activity_show_available_users, container, false);
 
-        chatRoomList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        ChatRoomListAdapter adapter = new ChatRoomListAdapter(getActivity(), listOfUsers);
+        userList = (ListView) view.findViewById(R.id.userList);
+        userList.setAdapter(adapter);
+
+        userList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-                String Selecteditem = listOfRooms[+position];
-                Toast.makeText(getApplicationContext(), Selecteditem + " Selected", Toast.LENGTH_SHORT).show();
+                String Selecteditem = listOfUsers[+position];
+                Toast.makeText(getActivity(), Selecteditem + " Selected", Toast.LENGTH_SHORT).show();
 
             }
         });
-
+        return view;
     }
-
+/*
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -76,7 +76,8 @@ public class ChatRoomsActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
-        */
+
         return true;
     }
+*/
 }

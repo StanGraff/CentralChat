@@ -7,9 +7,11 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -17,6 +19,14 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int SELECT_PICTURE_ACTIVITY_REQUEST_CODE = 0;
+
+    public boolean authenticated = false;
 
     SharedPreferencesProcessing sharedPreferencesProcessing = new SharedPreferencesProcessing();
     Utils utils = new Utils();
@@ -51,21 +63,16 @@ public class MainActivity extends AppCompatActivity {
 
         //}
 
-        if (sharedPreferencesProcessing.retrieveNickname(MainActivity.this) != null)
-        {
+        if (sharedPreferencesProcessing.retrieveNickname(MainActivity.this) != null) {
             nickname.setText(sharedPreferencesProcessing.retrieveNickname(MainActivity.this));
 
         }
 
 
-
-        if (sharedPreferencesProcessing.retrieveImage(this) != null)
-        {
+        if (sharedPreferencesProcessing.retrieveImage(this) != null) {
             //image.setImageBitmap(sharedPreferencesProcessing.retrieveImage(this));
             image.setImageBitmap(utils.getRoundedShape(sharedPreferencesProcessing.retrieveImage(this)));
-        }
-        else
-        {
+        } else {
             image.setImageResource(R.drawable.user_icon1);
         }
 
@@ -80,20 +87,24 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
+                //new HttpAuthenticateTask().execute("getAuthentication");
+
                 if (nickname.getText().toString().equals("")) {
                     Toast.makeText(MainActivity.this, "Please Input the Display Name", Toast.LENGTH_SHORT).show();
-                }
-                else if (sharedPreferencesProcessing.retrieveImage(MainActivity.this) == null)
-                {
+                } else if (sharedPreferencesProcessing.retrieveImage(MainActivity.this) == null) {
                     Toast.makeText(MainActivity.this, "Please Select an Image", Toast.LENGTH_SHORT).show();
+                //} else if (authenticated)
+                //{
+                //    Toast.makeText(MainActivity.this, "Chat Server Authentication Failed", Toast.LENGTH_SHORT).show();
                 }
-                else
-                {
+                else {
                     sharedPreferencesProcessing.storeNickname(MainActivity.this, nickname.getText().toString());
-                    Intent intent = new Intent(MainActivity.this, ChatActivity.class);
-                    startActivity(intent);
+                    Intent intent = new Intent(MainActivity.this, ShowChat.class);
 
+                    startActivity(intent);
+                    finish();
                     //Authenticate with the server
+                    //new HttpAuthenticateTask().execute("gettingMessages");
 
                     Toast.makeText(MainActivity.this, "Chat Activity Ready, " + sharedPreferencesProcessing.retrieveNickname(MainActivity.this), Toast.LENGTH_SHORT).show();
                     Toast.makeText(MainActivity.this, "Device MAC: " + utils.getDeviceMacAddress(MainActivity.this), Toast.LENGTH_LONG).show();
@@ -104,20 +115,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
 
-        if (sharedPreferencesProcessing.retrieveImage(this) != null)
-        {
+        if (sharedPreferencesProcessing.retrieveImage(this) != null) {
             //image.setImageBitmap(sharedPreferencesProcessing.retrieveImage(this));
             image.setImageBitmap(utils.getRoundedShape(sharedPreferencesProcessing.retrieveImage(this)));
-        }
-        else
-        {
+        } else {
             image.setImageResource(R.drawable.user_icon1);
         }
-        if (sharedPreferencesProcessing.retrieveNickname(MainActivity.this) != null)
-        {
+        if (sharedPreferencesProcessing.retrieveNickname(MainActivity.this) != null) {
             nickname.setText(sharedPreferencesProcessing.retrieveNickname(MainActivity.this));
 
         }
@@ -130,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == SELECT_PICTURE_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK && null != data) {
             Uri selectedImage = data.getData();
-            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+            String[] filePathColumn = {MediaStore.Images.Media.DATA};
             Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
             cursor.moveToFirst();
             int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
@@ -167,8 +174,8 @@ public class MainActivity extends AppCompatActivity {
         builder.setView(dialogueLayout);
 
 
-        camera =  (Button) dialogueLayout.findViewById(R.id.camera);
-        device =  (Button) dialogueLayout.findViewById(R.id.device);
+        camera = (Button) dialogueLayout.findViewById(R.id.camera);
+        device = (Button) dialogueLayout.findViewById(R.id.device);
 
         camera.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -201,6 +208,95 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(intent, SELECT_PICTURE_ACTIVITY_REQUEST_CODE);
     }
 
+    private class HttpAuthenticateTask extends AsyncTask<String, Void, Boolean> {
+
+
+        private static final String TAG = "HttpGetTask";
+
+        // Construct the URL for the OpenWeatherMap query
+        // Possible parameters are avaiable at OWM's forecast API page, at
+        // http://openweathermap.org/API#forecast
+        final String CHAT_BASE_URL =
+                "http://104.236.65.167:8080/ChatCentral/message/authenticate";
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+
+            InputStream in = null;
+            HttpURLConnection httpUrlConnection = null;
+            ArrayList<List<String>> resultArray = null;
+            try {
+
+                String builtUri = CHAT_BASE_URL + params[0];
+
+                URL url = new URL(builtUri.toString());
+
+                HttpURLConnection conn = (HttpURLConnection) url
+                        .openConnection();
+                conn.setConnectTimeout(30000);
+                conn.setReadTimeout(30000);
+                conn.setInstanceFollowRedirects(true);
+                InputStream is = conn.getInputStream();
+
+
+                //HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                //con.connect();
+
+                if (!is.toString().equals("200"))
+                {
+                    return false;
+                }
+                else return true;
+
+               //if (con.getResponseCode() != 200) {
+               //     return false;
+               // }
+               // else return true;
+
+
+            } catch (MalformedURLException exception) {
+                Log.e(TAG, "MalformedURLException");
+            } catch (IOException exception) {
+                Log.e(TAG, "IOException");
+            } finally {
+                if (null != httpUrlConnection) {
+                    httpUrlConnection.disconnect();
+                }
+                if (in != null) {
+                    try {
+                        in.close();
+                    } catch (final IOException e) {
+                        Log.e(TAG, "Error closing stream", e);
+                    }
+                }
+            }
+
+            return false;
+        }
+
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+
+/*
+            if (result == false) {
+                Toast.makeText(MainActivity.this,
+                        "Oooops! Something went wrong in the server-client communication!",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+
+            if (result == true) {
+                Toast.makeText(MainActivity.this,
+                        "Connection successful!",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+*/
+        }
+
+    }
 
 
 }

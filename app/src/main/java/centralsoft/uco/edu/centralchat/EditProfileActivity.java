@@ -52,21 +52,16 @@ public class EditProfileActivity extends AppCompatActivity {
 
         //}
 
-        if (sharedPreferencesProcessing.retrieveNickname(EditProfileActivity.this) != null)
-        {
+        if (sharedPreferencesProcessing.retrieveNickname(EditProfileActivity.this) != null) {
             nickname.setText(sharedPreferencesProcessing.retrieveNickname(EditProfileActivity.this));
 
         }
 
 
-
-        if (sharedPreferencesProcessing.retrieveImage(this) != null)
-        {
+        if (sharedPreferencesProcessing.retrieveImage(this) != null) {
             //image.setImageBitmap(sharedPreferencesProcessing.retrieveImage(this));
             image.setImageBitmap(utils.getRoundedShape(sharedPreferencesProcessing.retrieveImage(this)));
-        }
-        else
-        {
+        } else {
             image.setImageResource(R.drawable.user_icon1);
         }
 
@@ -83,13 +78,9 @@ public class EditProfileActivity extends AppCompatActivity {
 
                 if (nickname.getText().toString().equals("")) {
                     Toast.makeText(EditProfileActivity.this, "Please Input the Display Name", Toast.LENGTH_SHORT).show();
-                }
-                else if (sharedPreferencesProcessing.retrieveImage(EditProfileActivity.this) == null)
-                {
+                } else if (sharedPreferencesProcessing.retrieveImage(EditProfileActivity.this) == null) {
                     Toast.makeText(EditProfileActivity.this, "Please Select an Image", Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
+                } else {
                     sharedPreferencesProcessing.storeNickname(EditProfileActivity.this, nickname.getText().toString());
                     //Intent intent = new Intent(EditProfileActivity.this, ChatActivity.class);
                     //startActivity(intent);
@@ -131,7 +122,7 @@ public class EditProfileActivity extends AppCompatActivity {
 
         if (requestCode == SELECT_PICTURE_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK && null != data) {
             Uri selectedImage = data.getData();
-            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+            String[] filePathColumn = {MediaStore.Images.Media.DATA};
             Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
             cursor.moveToFirst();
             int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
@@ -161,8 +152,8 @@ public class EditProfileActivity extends AppCompatActivity {
         builder.setView(dialogueLayout);
 
 
-        camera =  (Button) dialogueLayout.findViewById(R.id.camera);
-        device =  (Button) dialogueLayout.findViewById(R.id.device);
+        camera = (Button) dialogueLayout.findViewById(R.id.camera);
+        device = (Button) dialogueLayout.findViewById(R.id.device);
 
         camera.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
