@@ -1,15 +1,18 @@
 package centralsoft.uco.edu.centralchat;
 
+import android.app.Fragment;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class ChatRoomsActivity extends AppCompatActivity {
+public class ChatRoomsActivity extends Fragment {
 
     private ListView chatRoomList;
 
@@ -33,12 +36,14 @@ public class ChatRoomsActivity extends AppCompatActivity {
     };
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat_rooms);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
 
-        ChatRoomListAdapter adapter = new ChatRoomListAdapter(this, listOfRooms);
-        chatRoomList = (ListView) findViewById(R.id.roomList);
+        View view = inflater.inflate(R.layout.activity_chat_rooms, container, false);
+
+
+        ChatRoomListAdapter adapter = new ChatRoomListAdapter(getActivity(), listOfRooms);
+        chatRoomList = (ListView) view.findViewById(R.id.roomList);
         chatRoomList.setAdapter(adapter);
 
         chatRoomList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -47,36 +52,25 @@ public class ChatRoomsActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
                 String Selecteditem = listOfRooms[+position];
-                Toast.makeText(getApplicationContext(), Selecteditem + " Selected", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), Selecteditem + " Selected", Toast.LENGTH_SHORT).show();
 
             }
         });
 
+            return view;
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.menu_chat_rooms, menu);
-        return true;
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        /*if (id == R.id.action_settings) {
-            Intent editProfilesIntent = new Intent(this, EditProfileActivity.class);
-            startActivity(editProfilesIntent);
-            return super.onOptionsItemSelected(item);
-        }
-
-        return super.onOptionsItemSelected(item);
-        */
-        return true;
+         return true;
     }
 }

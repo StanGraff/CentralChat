@@ -18,7 +18,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +47,7 @@ public class ChatActivity extends Fragment {
 
         View view = inflater.inflate(R.layout.activity_chat, container, false);
         setHasOptionsMenu(true);
+
 
         btnSend = (Button) view.findViewById(R.id.send);
         inputMsg = (EditText) view.findViewById(R.id.message);
@@ -82,10 +82,6 @@ public class ChatActivity extends Fragment {
 
         if (phoneDevice)
             getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
-        Toast.makeText(getActivity(), "Size " + messageList.size(), Toast.LENGTH_SHORT);
-
-
 
 
         btnSend.setOnClickListener(new View.OnClickListener() {
@@ -187,7 +183,7 @@ public class ChatActivity extends Fragment {
 
     @Override
     public void onPause() {
-        super.onPause();  // Always call the superclass method first
+        super.onPause();
 
         if (messageList != null) {
             sharedPreferencesProcessing.storeChat((ArrayList<Message>) messageList, getActivity());
@@ -205,15 +201,15 @@ public class ChatActivity extends Fragment {
                     messageList.add(temp.get(i));
                 }
                 adapter.notifyDataSetChanged();
-
             }
         }
     }
 
-
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_chat, menu);
+        inflater.inflate(R.menu.chat_activity, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+
     }
 
 
@@ -221,66 +217,20 @@ public class ChatActivity extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+        // as you specify a parent activity in AndroidManifest.xml
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             Intent editProfileIntent = new Intent(getActivity(), EditProfileActivity.class);
             startActivity(editProfileIntent);
-            return super.onOptionsItemSelected(item);
-        } else if (id == R.id.chat_rooms) {
-            Intent chatRoomsIntent = new Intent(getActivity(), ChatRoomsActivity.class);
-            startActivity(chatRoomsIntent);
-            return super.onOptionsItemSelected(item);
-        } else if (id == R.id.clear_chat) {
-            deleteChat();
-            return super.onOptionsItemSelected(item);
-
-        } else return true;
-    }
-/*
-
-    public boolean onCreateOptionsMenu(Menu menu) {
-
-        //get the default Display object representing the screen
-        Display display = ((WindowManager) getActivity().getSystemService(getActivity().WINDOW_SERVICE)).getDefaultDisplay();
-        Point screenSize = new Point(); // used to store screen size
-        display.getRealSize(screenSize); // store size in screenSize
-
-        //Display the app's menu only in portrait orientation
-        if (screenSize.x < screenSize.y) // x is width, y is hight
-        {
-            // Inflate the menu; this adds items to the action bar if it is present.
-            getActivity().getMenuInflater().inflate(R.menu.menu_chat, menu);
             return true;
-        } else {
-            return false;
+        }
+        if (id == R.id.clear_chat) {
+            deleteChat();
+            return true;
+        } else{
+            return super.onOptionsItemSelected(item);
         }
     }
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            Intent editProfileIntent = new Intent(getActivity(), EditProfileActivity.class);
-            startActivity(editProfileIntent);
-            return super.onOptionsItemSelected(item);
-        } else if (id == R.id.chat_rooms) {
-            Intent chatRoomsIntent = new Intent(getActivity(), ChatRoomsActivity.class);
-            startActivity(chatRoomsIntent);
-            return super.onOptionsItemSelected(item);
-        } else if (id == R.id.clear_chat) {
-            deleteChat();
-            return super.onOptionsItemSelected(item);
-
-        } else return true;
-    }
- */
 }

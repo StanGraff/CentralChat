@@ -23,17 +23,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-          <activity
-            android:name=".ChatRoomsActivity"
-            android:label="@string/title_activity_chat_rooms" >
-        </activity>
         <activity
             android:name=".EditProfileActivity"
             android:label="@string/title_activity_edit_profile" >
         </activity>
-        <activity android:name=".ShowChat" >
+        <activity
+            android:name=".ShowChat"
+            android:label="@string/title_activity_chat" >
         </activity>
-
+        <activity android:name=".ShowUsers" >
+        </activity>
+        <activity android:name=".ShowRooms" >
+        </activity>
     </application>
 
 </manifest>

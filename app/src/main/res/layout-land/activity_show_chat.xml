@@ -5,17 +5,15 @@
     android:baselineAligned="false"
     android:orientation="horizontal">
 
-    <fragment
-        android:id="@+id/names"
-        class="centralsoft.uco.edu.centralchat.ShowAvailableUsers"
+    <FrameLayout
+        android:id="@+id/Names_or_Rooms"
         android:layout_width="0px"
         android:layout_height="match_parent"
         android:layout_weight="1" />
 
-    <fragment
+    <FrameLayout
         android:id="@+id/chat"
         android:layout_width="0px"
-        class="centralsoft.uco.edu.centralchat.ChatActivity"
         android:layout_height="match_parent"
         android:layout_weight="2" />
 
