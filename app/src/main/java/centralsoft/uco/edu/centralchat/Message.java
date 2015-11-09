@@ -8,12 +8,16 @@ public class Message {
     private String msg;
     private String isMyMsg;
     private String msgDate;
+    String viewed;
 
-    public Message(String msgFrom, String msg, String isMyMsg, String msgDate) {
+
+
+    public Message(String msgFrom, String msg, String isMyMsg, String msgDate, String viewed) {
         this.msgFrom = msgFrom;
         this.msg = msg;
         this.isMyMsg = isMyMsg;
         this.msgDate = msgDate;
+        this.viewed = viewed;
     }
 
     public void setMsgFrom(String msgFrom) {
@@ -43,4 +47,8 @@ public class Message {
     public String getMsgDate() {
         return msgDate;
     }
+
+    public String isViewed() {return viewed;}
+
+    public void setViewed(String viewed) {this.viewed = viewed;}
 }
