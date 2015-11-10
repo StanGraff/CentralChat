@@ -76,7 +76,7 @@ public class MessageListAdapter extends BaseAdapter {
                 img.setImageResource(R.drawable.chat_central_logo);
             }else{
                 for(int i = 0; i < iconList.size() ; i++){
-                    if(iconList.get(i).getUserID().equals(messageList.get(position).getMsgFrom())){
+                    if(iconList.get(i).getUserID().equals(messageList.get(position).getMsgFrom()) && iconList.get(i).getIcon().length() > 1000){
                         String iconString = iconList.get(i).getIcon();
                         SharedPreferencesProcessing spp = new SharedPreferencesProcessing();
                         Bitmap tmpBitmap = spp.getMessageImage(iconString);

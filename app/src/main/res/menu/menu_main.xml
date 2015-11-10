@@ -9,4 +9,10 @@
         android:title="@string/simulate_message"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/add_image2"
+        android:orderInCategory="100"
+        android:title="Simulate Message 2"
+        app:showAsAction="never" />
+
 </menu>

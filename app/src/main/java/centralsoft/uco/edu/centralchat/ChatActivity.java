@@ -2,6 +2,7 @@ package centralsoft.uco.edu.centralchat;
 
 import android.app.AlertDialog;
 import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
@@ -53,6 +54,7 @@ public class ChatActivity extends Fragment {
     private String isMyMsg = "1";
     private Button cancel, ok;
     private int i;
+    private String chatID = "";
     
     private ArrayList<List<String>> msgList;
 
@@ -67,6 +69,13 @@ public class ChatActivity extends Fragment {
     SharedPreferencesProcessing sharedPreferencesProcessing = new SharedPreferencesProcessing();
     Utils utils = new Utils();
 
+
+    public static ChatActivity newInstance(String chatID, Context ct){
+        ChatActivity fragment = new ChatActivity();
+        new SharedPreferencesProcessing().setChatID(chatID, ct);
+        return fragment;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -74,18 +83,41 @@ public class ChatActivity extends Fragment {
         View view = inflater.inflate(R.layout.activity_chat, container, false);
         setHasOptionsMenu(true);
 
-
         btnSend = (Button) view.findViewById(R.id.send);
         inputMsg = (EditText) view.findViewById(R.id.message);
         listViewMessages = (ListView) view.findViewById(R.id.messages_list);
 
         messageList = new ArrayList<Message>();
         iconList = new ArrayList<UserIcon>();
-        //temp = messageList = new ArrayList<Message>();
 
+        if(sharedPreferencesProcessing.getIcons(getActivity()) != null){
+            List<UserIcon> tempIcon;
+            // tempIcon = new ArrayList<UserIcon>();
+            tempIcon = sharedPreferencesProcessing.getIcons(getActivity());
+            for(int i = 0; i < tempIcon.size(); i++){
+                iconList.add(tempIcon.get(i));
+            }
+        }
 
         adapter = new MessageListAdapter(getActivity(), messageList, iconList);
         listViewMessages.setAdapter(adapter);
+
+        if(sharedPreferencesProcessing.getChatID(getActivity()) != null && !sharedPreferencesProcessing.getChatID(getActivity()).equals("")){
+            chatID = sharedPreferencesProcessing.getChatID(getActivity());
+            //get all messages with this chat id from SharedPreferencesProcessing
+            if (sharedPreferencesProcessing.getChat(chatID, getActivity()) != null) {
+                if (messageList.size() <= 0 && sharedPreferencesProcessing.getChat(chatID, getActivity()).size() > 0) {
+                    List<Message> temp;
+                    temp = sharedPreferencesProcessing.getChat(chatID, getActivity());
+                    for (int i = 0; i < temp.size(); i++) {
+                        messageList.add(temp.get(i));
+                    }
+                    adapter.notifyDataSetChanged();
+                }
+            }
+        }
+
+        //temp = messageList = new ArrayList<Message>();
 
 
         listViewMessages.setOnItemLongClickListener(new OnItemLongClickListener() {
@@ -125,8 +157,10 @@ public class ChatActivity extends Fragment {
                 String randomNum = Integer.toString(rand.nextInt((100 - 1) + 1) + 1);
                 new HttpPostTask().execute(randomNum, myName, "Recepient", msg);
 
-                Message s = new Message("Auto Response", "No other users in room", "0", utils.getDate(), "0");
-                messageList.add(s);
+                if(chatID.equals("")){
+                    Message s = new Message("Auto Response", "No user or room selected", "0", utils.getDate(), "0");
+                    messageList.add(s);
+                }
                 adapter.notifyDataSetChanged();
             }
         });
@@ -240,8 +274,9 @@ public class ChatActivity extends Fragment {
     public void onPause() {
         super.onPause();
 
-        if (messageList != null) {
-            sharedPreferencesProcessing.storeChat((ArrayList<Message>) messageList,(ArrayList<UserIcon>) iconList, getActivity());
+        if (messageList != null && !chatID.equals("")) {
+            sharedPreferencesProcessing.storeChat((ArrayList<Message>) messageList, chatID, getActivity());
+            sharedPreferencesProcessing.storeIcons((ArrayList<UserIcon>) iconList, getActivity());
         }
     }
 
@@ -249,18 +284,20 @@ public class ChatActivity extends Fragment {
     public void onResume() {
         super.onResume();
 
-        if (sharedPreferencesProcessing.getChat(getActivity()) != null) {
-            if (messageList.size() <= 0 && sharedPreferencesProcessing.getChat(getActivity()).size() > 0) {
+        if (sharedPreferencesProcessing.getChat(chatID, getActivity()) != null) {
+            if (messageList.size() <= 0 && sharedPreferencesProcessing.getChat(chatID, getActivity()).size() > 0) {
                 List<Message> temp;
-                temp = sharedPreferencesProcessing.getChat(getActivity());
+                temp = sharedPreferencesProcessing.getChat(chatID, getActivity());
                 for (int i = 0; i < temp.size(); i++) {
                     messageList.add(temp.get(i));
                 }
-                List<UserIcon> tempIcon;
-                // tempIcon = new ArrayList<UserIcon>();
-                tempIcon = sharedPreferencesProcessing.getIcons(getActivity());
-                for(int i = 0; i < tempIcon.size(); i++){
-                    iconList.add(tempIcon.get(i));
+                if(iconList.size() <= 0 && sharedPreferencesProcessing.getIcons(getActivity()).size() > 0){
+                    List<UserIcon> tempIcon;
+                    // tempIcon = new ArrayList<UserIcon>();
+                    tempIcon = sharedPreferencesProcessing.getIcons(getActivity());
+                    for(int i = 0; i < tempIcon.size(); i++){
+                        iconList.add(tempIcon.get(i));
+                    }
                 }
                 adapter.notifyDataSetChanged();
             }
@@ -292,18 +329,21 @@ public class ChatActivity extends Fragment {
             deleteChat();
             return true;
         } else if(id == R.id.simulate_message){
-            Message m = new Message("Simulated", "Hey, whats up?", "0", utils.getDate(), "0");
+            if(chatID == ""){
+                return super.onOptionsItemSelected(item);
+            }
+            Message m = new Message(chatID, "Hey, whats up?", "0", utils.getDate(), "0");
             messageList.add(m);
-            boolean hasIcon = false;
-            for(int i = 0; i < iconList.size() ; i++){
-                if(iconList.get(i).getUserID().equals("Simulated")){
-                    hasIcon = true;
-                    iconList.get(i).setIcon(sharedPreferencesProcessing.getSimulatedIcon(getActivity()));
-                }
-            }
-            if(!hasIcon){
-                iconList.add(new UserIcon("Simulated", sharedPreferencesProcessing.getSimulatedIcon(getActivity())));
-            }
+//            boolean hasIcon = false;
+//            for(int i = 0; i < iconList.size() ; i++){
+//                if(iconList.get(i).getUserID().equals(chatID)){
+//                    hasIcon = true;
+//                    iconList.get(i).setIcon(sharedPreferencesProcessing.getSimulatedIcon(chatID, getActivity()));
+//                }
+//            }
+//            if(!hasIcon){
+//                iconList.add(new UserIcon(chatID, sharedPreferencesProcessing.getSimulatedIcon(chatID, getActivity())));
+//            }
             adapter.notifyDataSetChanged();
             return super.onOptionsItemSelected(item);
         }else{

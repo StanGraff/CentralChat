@@ -20,6 +20,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     private ImageView image;
@@ -152,9 +155,47 @@ public class MainActivity extends AppCompatActivity {
             cursor.close();
             Bitmap pictureObject = BitmapFactory.decodeFile(picturePath);
 
-            image.setImageBitmap(utils.getRoundedShape(pictureObject));
+            ArrayList<UserIcon> iconList = new ArrayList<UserIcon>();
+            if(sharedPreferencesProcessing.getIcons(this) != null && sharedPreferencesProcessing.getIcons(this).size() > 0){
+                iconList = sharedPreferencesProcessing.getIcons(this);
+                for(int i = 0; i < iconList.size(); i++){
+                    if(iconList.get(i).getUserID() == "Simulated"){
+                        iconList.get(i).setIcon(sharedPreferencesProcessing.storeMessageImage(pictureObject));
+                    }
+                }
+                iconList.add(new UserIcon("Simulated", sharedPreferencesProcessing.storeMessageImage(pictureObject)));
+            }else{
+                iconList.add(new UserIcon("Simulated", sharedPreferencesProcessing.storeMessageImage(pictureObject)));
+            }
+            sharedPreferencesProcessing.storeIcons(iconList, this);
 
-            sharedPreferencesProcessing.storeSimulatedImage(this, pictureObject);
+            //sharedPreferencesProcessing.storeSimulatedImage(this, pictureObject, "Simulated");
+        }
+
+        if(requestCode == 4 && resultCode == RESULT_OK && null != data){
+            Uri selectedImage = data.getData();
+            String[] filePathColumn = {MediaStore.Images.Media.DATA};
+            Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
+            cursor.moveToFirst();
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            String picturePath = cursor.getString(columnIndex);
+            cursor.close();
+            Bitmap pictureObject = BitmapFactory.decodeFile(picturePath);
+
+            ArrayList<UserIcon> iconList = new ArrayList<UserIcon>();
+            if(sharedPreferencesProcessing.getIcons(this) != null && sharedPreferencesProcessing.getIcons(this).size() > 0){
+                iconList = sharedPreferencesProcessing.getIcons(this);
+                for(int i = 0; i < iconList.size(); i++){
+                    if(iconList.get(i).getUserID() == "Simulated2"){
+                        iconList.get(i).setIcon(sharedPreferencesProcessing.storeMessageImage(pictureObject));
+                    }
+                }
+                iconList.add(new UserIcon("Simulated2", sharedPreferencesProcessing.storeMessageImage(pictureObject)));
+            }else{
+                iconList.add(new UserIcon("Simulated2", sharedPreferencesProcessing.storeMessageImage(pictureObject)));
+            }
+            sharedPreferencesProcessing.storeIcons(iconList, this);
+            //sharedPreferencesProcessing.storeSimulatedImage(this, pictureObject, "Simulated2");
         }
     }
 
@@ -228,7 +269,12 @@ public class MainActivity extends AppCompatActivity {
             intent.setType("image/*");
             startActivityForResult(intent, 3);
             return super.onOptionsItemSelected(item);
-        }else return true;
+        } else if(id == R.id.add_image2) {
+            Intent intent = new Intent(Intent.ACTION_PICK);
+            intent.setType("image/*");
+            startActivityForResult(intent, 4);
+            return super.onOptionsItemSelected(item);
+        } else return true;
     }
 
 }
