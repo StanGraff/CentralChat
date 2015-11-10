@@ -3,9 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="centralsoft.uco.edu.centralchat.ShowChat">
     <item
-        android:id="@+id/chat_rooms"
+        android:id="@+id/chat_users_landscape"
         android:orderInCategory="100"
-        android:title="@string/chat_rooms"
+        android:title="@string/chat_users_landscape"
         app:showAsAction="never" />
+
+
 
 </menu>

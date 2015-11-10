@@ -51,21 +51,16 @@ public class MainActivity extends AppCompatActivity {
 
         //}
 
-        if (sharedPreferencesProcessing.retrieveNickname(MainActivity.this) != null)
-        {
+        if (sharedPreferencesProcessing.retrieveNickname(MainActivity.this) != null) {
             nickname.setText(sharedPreferencesProcessing.retrieveNickname(MainActivity.this));
 
         }
 
 
-
-        if (sharedPreferencesProcessing.retrieveImage(this) != null)
-        {
+        if (sharedPreferencesProcessing.retrieveImage(this) != null) {
             //image.setImageBitmap(sharedPreferencesProcessing.retrieveImage(this));
             image.setImageBitmap(utils.getRoundedShape(sharedPreferencesProcessing.retrieveImage(this)));
-        }
-        else
-        {
+        } else {
             image.setImageResource(R.drawable.user_icon1);
         }
 
@@ -82,17 +77,14 @@ public class MainActivity extends AppCompatActivity {
 
                 if (nickname.getText().toString().equals("")) {
                     Toast.makeText(MainActivity.this, "Please Input the Display Name", Toast.LENGTH_SHORT).show();
-                }
-                else if (sharedPreferencesProcessing.retrieveImage(MainActivity.this) == null)
-                {
+                } else if (sharedPreferencesProcessing.retrieveImage(MainActivity.this) == null) {
                     Toast.makeText(MainActivity.this, "Please Select an Image", Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
+                } else {
                     sharedPreferencesProcessing.storeNickname(MainActivity.this, nickname.getText().toString());
-                    Intent intent = new Intent(MainActivity.this, ChatActivity.class);
-                    startActivity(intent);
+                    Intent intent = new Intent(MainActivity.this, ShowChat.class);
 
+                    startActivity(intent);
+                    finish();
                     //Authenticate with the server
 
                     Toast.makeText(MainActivity.this, "Chat Activity Ready, " + sharedPreferencesProcessing.retrieveNickname(MainActivity.this), Toast.LENGTH_SHORT).show();
@@ -104,20 +96,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
 
-        if (sharedPreferencesProcessing.retrieveImage(this) != null)
-        {
+        if (sharedPreferencesProcessing.retrieveImage(this) != null) {
             //image.setImageBitmap(sharedPreferencesProcessing.retrieveImage(this));
             image.setImageBitmap(utils.getRoundedShape(sharedPreferencesProcessing.retrieveImage(this)));
-        }
-        else
-        {
+        } else {
             image.setImageResource(R.drawable.user_icon1);
         }
-        if (sharedPreferencesProcessing.retrieveNickname(MainActivity.this) != null)
-        {
+        if (sharedPreferencesProcessing.retrieveNickname(MainActivity.this) != null) {
             nickname.setText(sharedPreferencesProcessing.retrieveNickname(MainActivity.this));
 
         }
@@ -130,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == SELECT_PICTURE_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK && null != data) {
             Uri selectedImage = data.getData();
-            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+            String[] filePathColumn = {MediaStore.Images.Media.DATA};
             Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
             cursor.moveToFirst();
             int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
@@ -167,8 +155,8 @@ public class MainActivity extends AppCompatActivity {
         builder.setView(dialogueLayout);
 
 
-        camera =  (Button) dialogueLayout.findViewById(R.id.camera);
-        device =  (Button) dialogueLayout.findViewById(R.id.device);
+        camera = (Button) dialogueLayout.findViewById(R.id.camera);
+        device = (Button) dialogueLayout.findViewById(R.id.device);
 
         camera.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -200,7 +188,6 @@ public class MainActivity extends AppCompatActivity {
         intent.setType("image/*");
         startActivityForResult(intent, SELECT_PICTURE_ACTIVITY_REQUEST_CODE);
     }
-
 
 
 }
