@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/CentralChat.iml" filepath="$PROJECT_DIR$/CentralChat.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CentralChatMaster.iml" filepath="$PROJECT_DIR$/CentralChatMaster.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/gson-2.2.2/gson-2.2.2.iml" filepath="$PROJECT_DIR$/gson-2.2.2/gson-2.2.2.iml" />
     </modules>

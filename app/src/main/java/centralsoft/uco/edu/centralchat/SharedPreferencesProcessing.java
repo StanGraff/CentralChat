@@ -22,6 +22,7 @@ public class SharedPreferencesProcessing {
 
     public void storeImage(Context ct, Bitmap img) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        img = resizeImageForImageView(img);
         img.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         byte[] b = baos.toByteArray();
 
@@ -85,12 +86,14 @@ public class SharedPreferencesProcessing {
     }
 
 
-    public void storeChat(ArrayList<Message> chat, Context ct) {
+    public void storeChat(ArrayList<Message> chat,ArrayList<UserIcon> icons, Context ct) {
         SharedPreferences shre = PreferenceManager.getDefaultSharedPreferences(ct);
         SharedPreferences.Editor edit = shre.edit();
         Gson gson = new Gson();
         String json = gson.toJson(chat);
         edit.putString("chatMessages", json);
+        json = gson.toJson(icons);
+        edit.putString("userIcons", json);
         edit.commit();
     }
 
@@ -104,9 +107,60 @@ public class SharedPreferencesProcessing {
         return messages;
     }
 
+    public ArrayList getIcons(Context ct){
+        SharedPreferences shre = PreferenceManager.getDefaultSharedPreferences(ct);
+        Gson gson = new Gson();
+        String json = shre.getString("userIcons", "");
+        Type type = new TypeToken<List<UserIcon>>(){
+        }.getType();
+        ArrayList<UserIcon> icons = gson.fromJson(json, type);
+        return icons;
+    }
+
     public void storeSessionIdNumber(Context ct) {
 
     }
 
+    public Bitmap resizeImageForImageView(Bitmap bitmap) {
+        Bitmap resizedBitmap = null;
+        int originalWidth = bitmap.getWidth();
+        int originalHeight = bitmap.getHeight();
+        int newWidth = -1;
+        int newHeight = -1;
+        float multFactor = -1.0F;
+        if(originalHeight > originalWidth) {
+            newHeight = 80;
+            multFactor = (float) originalWidth/(float) originalHeight;
+            newWidth = (int) (newHeight*multFactor);
+        } else if(originalWidth > originalHeight) {
+            newWidth = 80;
+            multFactor = (float) originalHeight/ (float)originalWidth;
+            newHeight = (int) (newWidth*multFactor);
+        } else if(originalHeight == originalWidth) {
+            newHeight = 80;
+            newWidth = 80;
+        }
+        resizedBitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, false);
+        return resizedBitmap;
+    }
 
+    public void storeSimulatedImage(Context ct, Bitmap img) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        img = resizeImageForImageView(img);
+        img.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] b = baos.toByteArray();
+
+        String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
+        //textEncode.setText(encodedImage);
+
+        SharedPreferences shre = PreferenceManager.getDefaultSharedPreferences(ct);
+        SharedPreferences.Editor edit = shre.edit();
+        edit.putString("simulated_icon", encodedImage);
+        edit.commit();
+    }
+
+    public String getSimulatedIcon(Context ct){
+        SharedPreferences shre = PreferenceManager.getDefaultSharedPreferences(ct);
+        return shre.getString("simulated_icon", "");
+    }
 }
