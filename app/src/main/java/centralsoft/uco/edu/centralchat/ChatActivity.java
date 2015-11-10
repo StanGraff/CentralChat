@@ -33,6 +33,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -123,7 +124,7 @@ public class ChatActivity extends Fragment {
 
                 Random rand = new Random();
                 String randomNum = Integer.toString(rand.nextInt((100 - 1) + 1) + 1);
-                //new HttpPostTask().execute(randomNum, myName, "Recepient", msg);
+                new HttpPostTask().execute(randomNum, myName, "Recepient", msg);
 
                 Message s = new Message("Auto Response", "No other users in room", "0", utils.getDate());
                 messageList.add(s);
@@ -140,7 +141,7 @@ public class ChatActivity extends Fragment {
                 //String randomNum = Integer.toString(rand.nextInt((100 - 1) + 1) + 1);
                 //new HttpPostTask().execute(randomNum, myName, "Recepient", msg);
 
-                //Toast.makeText(getActivity(), "Long preess", Toast.LENGTH_LONG).show();
+                //Toast.makeText(getActivity(), "Long press", Toast.LENGTH_LONG).show();
 
                 new HttpGetTask().execute("gettingMessages");
 
@@ -149,6 +150,10 @@ public class ChatActivity extends Fragment {
                 return true;
             }
         });
+
+
+        //Register the service
+        startService(view);
 
         return view;
     }
@@ -285,6 +290,16 @@ public class ChatActivity extends Fragment {
         } else return true;
     }
 
+    // Method to start the service
+    public void startService(View view) {
+        getActivity().startService(new Intent(getActivity(), ChatRefreshService.class));
+    }
+
+    // Method to stop the service
+    public void stopService(View view) {
+        getActivity().stopService(new Intent(getActivity(), ChatRefreshService.class));
+    }
+
 
     private class HttpGetTask extends AsyncTask<String, Void, ArrayList<List<String>>> {
 
@@ -340,6 +355,11 @@ public class ChatActivity extends Fragment {
                 }
             }
 
+
+            Toast.makeText(getActivity(),
+                    "Data Received! Process it now! \n" + resultArray.toString(),
+                    Toast.LENGTH_SHORT).show();
+
             //setMessageList(resultArray);
 
             return resultArray;
@@ -365,6 +385,90 @@ public class ChatActivity extends Fragment {
 
 
 
+    private class HttpGetUserMessagesTask extends AsyncTask<String, Void, ArrayList<List<String>>> {
+
+
+        private static final String TAG = "HttpGetTask";
+
+        // Construct the URL for the OpenWeatherMap query
+        // Possible parameters are avaiable at OWM's forecast API page, at
+        // http://openweathermap.org/API#forecast
+        final String CHAT_BASE_URL =
+                "http://104.236.65.167:8080/CentralChat_No_Auth/message/view/to/";
+
+        @Override
+        protected ArrayList<List<String>> doInBackground(String... params) {
+            // These two need to be declared outside the try/catch
+            // so that they can be closed in the finally block.
+            InputStream in = null;
+            HttpURLConnection httpUrlConnection = null;
+            ArrayList<List<String>> resultArray = null;
+            try {
+                Uri builtUri = Uri.parse(CHAT_BASE_URL);//.buildUpon()
+                //.appendQueryParameter("q", params[0]) // city
+                //.appendQueryParameter("mode", "json") // json format as result
+                //.appendQueryParameter("units", "metric") // metric unit
+                //.appendQueryParameter("cnt", "1")      // 1 day forecast
+                //.appendQueryParameter("type", "accurate")
+                //.build();
+
+                URL url = new URL(builtUri.toString());
+                httpUrlConnection = (HttpURLConnection) url.openConnection();
+                in = new BufferedInputStream(
+                        httpUrlConnection.getInputStream());
+                String data = readStream(in);
+                resultArray = JSONMessageData.getData(data);
+
+            } catch (MalformedURLException exception) {
+                Log.e(TAG, "MalformedURLException");
+            } catch (IOException exception) {
+                Log.e(TAG, "IOException");
+            } catch (JSONException e) {
+                Log.e(TAG, e.getMessage(), e);
+                e.printStackTrace();
+            } finally {
+                if (null != httpUrlConnection) {
+                    httpUrlConnection.disconnect();
+                }
+                if (in != null) {
+                    try {
+                        in.close();
+                    } catch (final IOException e) {
+                        Log.e(TAG, "Error closing stream", e);
+                    }
+                }
+            }
+
+
+            Toast.makeText(getActivity(),
+                    "Data Received! Process it now! \n" + resultArray.toString(),
+                    Toast.LENGTH_SHORT).show();
+
+            //setMessageList(resultArray);
+
+            return resultArray;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<List<String>> result) {
+
+
+            if (result == null) {
+                Toast.makeText(getActivity(),
+                        "Something went wrong in the server-client communication!",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+
+            Toast.makeText(getActivity(),
+                    "Data Received! Process it now! \n" + result.toString(),
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+
 
 
         private class HttpPostTask extends AsyncTask<String, Void, ArrayList<List<String>>> {
@@ -384,7 +488,8 @@ public class ChatActivity extends Fragment {
                 ArrayList<List<String>> resultArray = null;
                 try {
 
-                    String builtUri = CHAT_BASE_URL + params[0] + "/" + params[1] + "/" + params[2] + "/" + params[3];
+                    String builtUri = CHAT_BASE_URL + URLEncoder.encode(params[0].trim()) + "/" + URLEncoder.encode(params[1].trim())
+                            + "/" + URLEncoder.encode(params[2].trim()) + "/" + URLEncoder.encode(params[3].trim());
 
 
                     //URL url = new URL(builtUri.toString());
@@ -400,28 +505,39 @@ public class ChatActivity extends Fragment {
 
                     //httpUrlConnection.connect();
 
-                    conn.setRequestProperty("Content-Type", "application/json");
-                    conn.setRequestProperty("charset", "utf-8");
-                    conn.setRequestMethod("POST");
-                    //conn.setDoInput(true);
-                    //conn.setDoOutput(true);
+
+                    //conn.setRequestProperty("Content-type", "application/json");
+                    conn.setRequestProperty("User-agent", "Fiddler");
+                    conn.setRequestProperty("Host", "104.236.65.167:8080");
+                    //conn.setRequestProperty("Authorization", "4321");
+                    //conn.setRequestProperty("charset", "utf-8");
+                    conn.setRequestMethod("GET");
+                    conn.setDoInput(false);
+                    conn.setDoOutput(false);
+                    conn.connect();
+
+
+
                     int responseCode = conn.getResponseCode();
+                    String message=conn.getResponseMessage();
+                    //
+                    System.out.println(message);
 
-                    //conn.connect();
 
 
 
-
-                    //in = new BufferedInputStream(
-                    //        httpUrlConnection.getInputStream());
-                    //String data = readStream(in);
                     //resultArray = JSONMessageData.getData(data);
 
                 } catch (MalformedURLException exception) {
                     Log.e(TAG, "MalformedURLException");
                 } catch (IOException exception) {
                     Log.e(TAG, "IOException");
-                } finally {
+                }
+                  catch(Exception ex)
+                  {
+                      Log.e(TAG, "Plain exception");
+                  }
+                finally {
                     if (null != conn) {
                         conn.disconnect();
                     }

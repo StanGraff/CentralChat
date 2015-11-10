@@ -49,7 +49,7 @@ public class JSONMessageData {
 
 
                 singleList.add(id + "");
-                singleList.add(message);
+                singleList.add(message.replace("+", " "));
                 singleList.add(to);
                 singleList.add(from);
                 result.add(singleList);

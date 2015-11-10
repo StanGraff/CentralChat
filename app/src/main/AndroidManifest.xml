@@ -34,6 +34,8 @@
         <activity android:name=".ShowChat" >
         </activity>
 
+        <service android:name=".ChatRefreshService" />
+
     </application>
 
 </manifest>
