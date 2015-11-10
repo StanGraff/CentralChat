@@ -3,10 +3,12 @@ package centralsoft.uco.edu.centralchat;
 /**
  * Created by Stanislav on 11/9/2015.
  */
+
 import android.app.Service;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
@@ -26,16 +28,42 @@ import java.util.List;
 
 public class ChatRefreshService extends Service {
 
+    private static String LOG_TAG = "BoundService";
+    private IBinder mBinder = new MyBinder();
+
     @Override
-    public IBinder onBind(Intent arg0) {
-        return null;
+    public void onCreate() {
+        super.onCreate();
+        Log.v(LOG_TAG, "in onCreate");
+        Toast.makeText(this, "Listening for new incoming messages!", Toast.LENGTH_LONG).show();
+        // Run check on new messages
+        // When new messages for the user detected
+        // notify the main activity
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        Log.v(LOG_TAG, "in onBind");
+        return mBinder;
+    }
+
+    @Override
+    public void onRebind(Intent intent) {
+        Log.v(LOG_TAG, "in onRebind");
+        super.onRebind(intent);
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Log.v(LOG_TAG, "in onUnbind");
+        return true;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // Let it continue running until it is stopped.
 
-            //Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
+
 
             //new checkForMessagesTask().execute("gettingIfNewMessages");
 
@@ -46,7 +74,14 @@ public class ChatRefreshService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Toast.makeText(this, "Service Destroyed", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Stopped listening for new incoming messages!", Toast.LENGTH_LONG).show();
+    }
+
+
+    public class MyBinder extends Binder {
+        ChatRefreshService getService() {
+            return ChatRefreshService.this;
+        }
     }
 
 

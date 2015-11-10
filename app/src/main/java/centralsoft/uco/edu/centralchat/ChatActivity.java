@@ -66,6 +66,9 @@ public class ChatActivity extends Fragment {
     SharedPreferencesProcessing sharedPreferencesProcessing = new SharedPreferencesProcessing();
     Utils utils = new Utils();
 
+    ChatRefreshService chatRefreshService;
+    boolean chatServiceBound = false;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -150,12 +153,11 @@ public class ChatActivity extends Fragment {
         
         //listMessages.add(m);
         //adapter.notifyDataSetChanged();
-        
-        //Register the service
-        startService(view);
 
         return view;
     }
+
+
 
     /*@Override
     public void onBackPressed() {
@@ -259,6 +261,13 @@ public class ChatActivity extends Fragment {
     }
 
     @Override
+    public void onDestroy() {
+
+        super.onDestroy();
+
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.chat_activity, menu);
         super.onCreateOptionsMenu(menu, inflater);
@@ -287,15 +296,7 @@ public class ChatActivity extends Fragment {
         }
     }
     
-    // Method to start the service
-    public void startService(View view) {
-        getActivity().startService(new Intent(getActivity(), ChatRefreshService.class));
-    }
 
-    // Method to stop the service
-    public void stopService(View view) {
-        getActivity().stopService(new Intent(getActivity(), ChatRefreshService.class));
-    }
 
 
     private class HttpGetTask extends AsyncTask<String, Void, ArrayList<List<String>>> {

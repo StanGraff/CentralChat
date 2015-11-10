@@ -85,10 +85,11 @@ public class MainActivity extends AppCompatActivity {
 
                     startActivity(intent);
                     finish();
+
                     //Authenticate with the server
 
-                    Toast.makeText(MainActivity.this, "Chat Activity Ready, " + sharedPreferencesProcessing.retrieveNickname(MainActivity.this), Toast.LENGTH_SHORT).show();
-                    Toast.makeText(MainActivity.this, "Device MAC: " + utils.getDeviceMacAddress(MainActivity.this), Toast.LENGTH_LONG).show();
+                    //Toast.makeText(MainActivity.this, "Chat Activity Ready, " + sharedPreferencesProcessing.retrieveNickname(MainActivity.this), Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(MainActivity.this, "Device MAC: " + utils.getDeviceMacAddress(MainActivity.this), Toast.LENGTH_LONG).show();
                 }
             }
         });

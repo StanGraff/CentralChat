@@ -3,9 +3,13 @@ package centralsoft.uco.edu.centralchat;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -17,6 +21,8 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+
+import centralsoft.uco.edu.centralchat.ChatRefreshService.MyBinder;
 
 public class ShowChat extends AppCompatActivity {
 
@@ -32,8 +38,9 @@ public class ShowChat extends AppCompatActivity {
     private ChatRoomsActivity roomsActivity;
     private Menu menu;
 
-
-
+    ChatRefreshService mBoundService;
+    boolean chatServiceBound = false;
+    boolean serviceOn = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,9 +80,53 @@ public class ShowChat extends AppCompatActivity {
             }
         }
 
+
         fragmentTransaction.commit();
 
+
+            if (!chatServiceBound) {
+                Intent intent = new Intent(this, ChatRefreshService.class);
+                startService(intent);
+                bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+                chatServiceBound = true;
+            }
+
+
+
+        //if (chatServiceBound) {
+        //    unbindService(mServiceConnection);
+        //    chatServiceBound = false;
+        //}
+        //Intent intent = new Intent(ShowChat.this,
+        //        ChatRefreshService.class);
+        //stopService(intent);
     }
+
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (!serviceOn) {
+            Intent intent = new Intent(this, ChatRefreshService.class);
+            startService(intent);
+            bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+            serviceOn = true;
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+            if (!chatServiceBound) {
+                unbindService(mServiceConnection);
+                //chatServiceBound = false;
+            }
+        }
+
+
+
 
     public void choose(){
         final LayoutInflater inflater = this.getLayoutInflater();
@@ -174,7 +225,8 @@ public class ShowChat extends AppCompatActivity {
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-          savedInstanceState.putBoolean("Rooms", showingRooms);
+        savedInstanceState.putBoolean("Rooms", showingRooms);
+        savedInstanceState.putBoolean("ServiceState", chatServiceBound);
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -182,8 +234,25 @@ public class ShowChat extends AppCompatActivity {
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         showingRooms = savedInstanceState.getBoolean("Rooms");
+        chatServiceBound = savedInstanceState.getBoolean("ServiceState");
+
     }
 
+
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            //chatServiceBound = false;
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MyBinder myBinder = (MyBinder) service;
+            mBoundService = myBinder.getService();
+            //chatServiceBound = true;
+        }
+    };
 
 }
 
