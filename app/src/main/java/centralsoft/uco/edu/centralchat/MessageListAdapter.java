@@ -77,6 +77,10 @@ public class MessageListAdapter extends BaseAdapter {
         mNotificationCount = 0;
 
 
+        if(m.isViewed() == null){
+            m.setViewed("1");
+        }
+
 
         if (messageList.get(position).isMyMsg().equals("0") && m.isViewed().equals("0")) {
             Intent intent = new Intent(context, ShowChat.class);
@@ -87,8 +91,8 @@ public class MessageListAdapter extends BaseAdapter {
                     context)
                     .setSmallIcon(R.drawable.chat_central_logo)
                     .setAutoCancel(true)
-                    .setContentTitle(++mNotificationCount + " New Message(s)")
-                    .setContentText("Click to view the Message(s)")
+                    .setContentTitle(++mNotificationCount + " New Message")
+                    .setContentText("Click to view the Message")
                     .setContentIntent(mContentIntent)
                     .setContentIntent(mContentIntent).setSound(soundUri );
 
