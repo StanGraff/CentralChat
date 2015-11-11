@@ -33,4 +33,6 @@
     <string name="users">Users</string>
 
     <string name="send">Send</string>
+
+    <string name="simulate_message">Simulate Message</string>
 </resources>

@@ -37,10 +37,13 @@ public class ShowChat extends AppCompatActivity {
     private ShowAvailableUsers userActivity;
     private ChatRoomsActivity roomsActivity;
     private Menu menu;
-
+    
     ChatRefreshService mBoundService;
     boolean chatServiceBound = false;
     boolean serviceOn = false;
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +70,6 @@ public class ShowChat extends AppCompatActivity {
         if (screenSize.x < screenSize.y){ // x is width, y is height
             //---portrait mode---
             if (chatActivity == null) {
-
                 fragmentTransaction.add(R.id.chat, new ChatActivity(), "Showing_Chat");
             }
         } else {
@@ -80,17 +82,14 @@ public class ShowChat extends AppCompatActivity {
             }
         }
 
-
         fragmentTransaction.commit();
-
-
-            if (!chatServiceBound) {
-                Intent intent = new Intent(this, ChatRefreshService.class);
-                startService(intent);
-                bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-                chatServiceBound = true;
-            }
-
+        
+          if (!chatServiceBound) {
+            Intent intent = new Intent(this, ChatRefreshService.class);
+            startService(intent);
+            bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+            chatServiceBound = true;
+        }
 
 
         //if (chatServiceBound) {
@@ -101,7 +100,6 @@ public class ShowChat extends AppCompatActivity {
         //        ChatRefreshService.class);
         //stopService(intent);
     }
-
 
 
     @Override
@@ -119,11 +117,12 @@ public class ShowChat extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
 
-            if (!chatServiceBound) {
-                unbindService(mServiceConnection);
-                //chatServiceBound = false;
-            }
+        if (!chatServiceBound) {
+            unbindService(mServiceConnection);
+            //chatServiceBound = false;
         }
+    }
+
 
 
 
@@ -146,16 +145,18 @@ public class ShowChat extends AppCompatActivity {
 
         cancel.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Intent chatRoomsIntent = new Intent(ShowChat.this, ShowRooms.class);
-                startActivity(chatRoomsIntent);
+                fm.beginTransaction().replace(R.id.chat, new ChatRoomsActivity()).commit();
+//                Intent chatRoomsIntent = new Intent(ShowChat.this, ShowRooms.class);
+//                startActivity(chatRoomsIntent);
                 ShowChat.this.alert.dismiss();
             }
         });
 
         ok.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Intent chatRoomsIntent = new Intent(ShowChat.this, ShowUsers.class);
-                startActivity(chatRoomsIntent);
+                fm.beginTransaction().replace(R.id.chat, new ShowAvailableUsers()).commit();
+//                Intent chatRoomsIntent = new Intent(ShowChat.this, ShowUsers.class);
+//                startActivity(chatRoomsIntent);
                 ShowChat.this.alert.dismiss();
             }
         });
@@ -225,8 +226,8 @@ public class ShowChat extends AppCompatActivity {
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        savedInstanceState.putBoolean("Rooms", showingRooms);
-        savedInstanceState.putBoolean("ServiceState", chatServiceBound);
+          savedInstanceState.putBoolean("Rooms", showingRooms);
+          savedInstanceState.putBoolean("ServiceState", chatServiceBound);
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -234,12 +235,10 @@ public class ShowChat extends AppCompatActivity {
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         showingRooms = savedInstanceState.getBoolean("Rooms");
-        chatServiceBound = savedInstanceState.getBoolean("ServiceState");
-
+        showingRooms = savedInstanceState.getBoolean("Rooms");
     }
-
-
-    private ServiceConnection mServiceConnection = new ServiceConnection() {
+    
+     private ServiceConnection mServiceConnection = new ServiceConnection() {
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
@@ -253,6 +252,7 @@ public class ShowChat extends AppCompatActivity {
             //chatServiceBound = true;
         }
     };
+
 
 }
 

@@ -11,12 +11,16 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -85,7 +89,6 @@ public class MainActivity extends AppCompatActivity {
 
                     startActivity(intent);
                     finish();
-
                     //Authenticate with the server
 
                     //Toast.makeText(MainActivity.this, "Chat Activity Ready, " + sharedPreferencesProcessing.retrieveNickname(MainActivity.this), Toast.LENGTH_SHORT).show();
@@ -139,6 +142,60 @@ public class MainActivity extends AppCompatActivity {
 
             sharedPreferencesProcessing.storeImage(this, imageBitmap);
         }
+
+        /** this is temp code for simulating message*/
+        if(requestCode == 3 && resultCode == RESULT_OK && null != data){
+            Uri selectedImage = data.getData();
+            String[] filePathColumn = {MediaStore.Images.Media.DATA};
+            Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
+            cursor.moveToFirst();
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            String picturePath = cursor.getString(columnIndex);
+            cursor.close();
+            Bitmap pictureObject = BitmapFactory.decodeFile(picturePath);
+
+            ArrayList<UserIcon> iconList = new ArrayList<UserIcon>();
+            if(sharedPreferencesProcessing.getIcons(this) != null && sharedPreferencesProcessing.getIcons(this).size() > 0){
+                iconList = sharedPreferencesProcessing.getIcons(this);
+                for(int i = 0; i < iconList.size(); i++){
+                    if(iconList.get(i).getUserID() == "Simulated"){
+                        iconList.get(i).setIcon(sharedPreferencesProcessing.storeMessageImage(pictureObject));
+                    }
+                }
+                iconList.add(new UserIcon("Simulated", sharedPreferencesProcessing.storeMessageImage(pictureObject)));
+            }else{
+                iconList.add(new UserIcon("Simulated", sharedPreferencesProcessing.storeMessageImage(pictureObject)));
+            }
+            sharedPreferencesProcessing.storeIcons(iconList, this);
+
+            //sharedPreferencesProcessing.storeSimulatedImage(this, pictureObject, "Simulated");
+        }
+
+        if(requestCode == 4 && resultCode == RESULT_OK && null != data){
+            Uri selectedImage = data.getData();
+            String[] filePathColumn = {MediaStore.Images.Media.DATA};
+            Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
+            cursor.moveToFirst();
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            String picturePath = cursor.getString(columnIndex);
+            cursor.close();
+            Bitmap pictureObject = BitmapFactory.decodeFile(picturePath);
+
+            ArrayList<UserIcon> iconList = new ArrayList<UserIcon>();
+            if(sharedPreferencesProcessing.getIcons(this) != null && sharedPreferencesProcessing.getIcons(this).size() > 0){
+                iconList = sharedPreferencesProcessing.getIcons(this);
+                for(int i = 0; i < iconList.size(); i++){
+                    if(iconList.get(i).getUserID() == "Simulated2"){
+                        iconList.get(i).setIcon(sharedPreferencesProcessing.storeMessageImage(pictureObject));
+                    }
+                }
+                iconList.add(new UserIcon("Simulated2", sharedPreferencesProcessing.storeMessageImage(pictureObject)));
+            }else{
+                iconList.add(new UserIcon("Simulated2", sharedPreferencesProcessing.storeMessageImage(pictureObject)));
+            }
+            sharedPreferencesProcessing.storeIcons(iconList, this);
+            //sharedPreferencesProcessing.storeSimulatedImage(this, pictureObject, "Simulated2");
+        }
     }
 
     private void dispatchTakePictureIntent() {
@@ -190,5 +247,33 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(intent, SELECT_PICTURE_ACTIVITY_REQUEST_CODE);
     }
 
+    /** following can be removed once simulate message is not needed */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.add_image) {
+            Intent intent = new Intent(Intent.ACTION_PICK);
+            intent.setType("image/*");
+            startActivityForResult(intent, 3);
+            return super.onOptionsItemSelected(item);
+        } else if(id == R.id.add_image2) {
+            Intent intent = new Intent(Intent.ACTION_PICK);
+            intent.setType("image/*");
+            startActivityForResult(intent, 4);
+            return super.onOptionsItemSelected(item);
+        } else return true;
+    }
 
 }

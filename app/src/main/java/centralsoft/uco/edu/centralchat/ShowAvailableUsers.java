@@ -14,6 +14,8 @@ public class ShowAvailableUsers extends Fragment {
     private ListView userList;
 
     String[] listOfUsers = {
+            "Simulated",
+            "Simulated2",
             "User 1",
             "User 2",
             "User 3",
@@ -46,7 +48,11 @@ public class ShowAvailableUsers extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
+
                 String Selecteditem = listOfUsers[+position];
+                new SharedPreferencesProcessing().setChatID(Selecteditem, getActivity());
+                //getActivity().getFragmentManager().beginTransaction().replace(R.id.chat, ChatActivity.newInstance(Selecteditem, getActivity())).commit();
+                getActivity().getFragmentManager().beginTransaction().replace(R.id.chat, new ChatActivity()).commit();
                 Toast.makeText(getActivity(), Selecteditem + " Selected", Toast.LENGTH_SHORT).show();
 
             }

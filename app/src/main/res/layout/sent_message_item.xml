@@ -22,6 +22,12 @@
             android:textSize="12dp"
             android:textStyle="italic" />
 
+        <ImageView
+            android:id="@+id/userIcon"
+            android:layout_width="50sp"
+            android:layout_height="50sp"
+            android:layout_gravity="center_vertical"/>
+
     </LinearLayout>
 
     <TextView

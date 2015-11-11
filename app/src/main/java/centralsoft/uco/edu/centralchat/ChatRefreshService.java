@@ -64,10 +64,9 @@ public class ChatRefreshService extends Service {
         // Let it continue running until it is stopped.
 
 
+        //new checkForMessagesTask().execute("gettingIfNewMessages");
 
-            //new checkForMessagesTask().execute("gettingIfNewMessages");
-
-            return START_STICKY;
+        return START_STICKY;
 
     }
 
@@ -83,7 +82,6 @@ public class ChatRefreshService extends Service {
             return ChatRefreshService.this;
         }
     }
-
 
 
     private class checkForMessagesTask extends AsyncTask<String, Void, ArrayList<List<String>>> {
@@ -147,7 +145,7 @@ public class ChatRefreshService extends Service {
         @Override
         protected void onPostExecute(ArrayList<List<String>> result) {
 
-                return;
+            return;
         }
     }
 
