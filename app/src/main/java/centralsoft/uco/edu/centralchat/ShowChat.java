@@ -3,13 +3,8 @@ package centralsoft.uco.edu.centralchat;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.graphics.Point;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -21,8 +16,6 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
-
-import centralsoft.uco.edu.centralchat.ChatRefreshService.MyBinder;
 
 public class ShowChat extends AppCompatActivity {
 
@@ -37,10 +30,9 @@ public class ShowChat extends AppCompatActivity {
     private ShowAvailableUsers userActivity;
     private ChatRoomsActivity roomsActivity;
     private Menu menu;
-    
-    ChatRefreshService mBoundService;
-    boolean chatServiceBound = false;
-    boolean serviceOn = false;
+
+    // Intent Message sent from Broadcast Receiver
+    String message;
 
 
 
@@ -67,65 +59,38 @@ public class ShowChat extends AppCompatActivity {
         roomsActivity = (ChatRoomsActivity) getFragmentManager().findFragmentByTag("Showing_Rooms");
 
 
-        if (screenSize.x < screenSize.y){ // x is width, y is height
-            //---portrait mode---
-            if (chatActivity == null) {
-                fragmentTransaction.add(R.id.chat, new ChatActivity(), "Showing_Chat");
-            }
-        } else {
+        if (chatActivity == null) {
+            fragmentTransaction.add(R.id.chat, new ChatActivity(), "Showing_Chat");
+        }
+
+        if (screenSize.x > screenSize.y){ // x is width, y is height
             //---landscape mode---
-            if (chatActivity == null) {
-                fragmentTransaction.add(R.id.chat, new ChatActivity(), "Showing_Chat");
-            }
             if (userActivity == null) {
                 fragmentTransaction.add(R.id.Names_or_Rooms, new ShowAvailableUsers(), "Showing_Users");
             }
         }
 
         fragmentTransaction.commit();
-        
-          if (!chatServiceBound) {
-            Intent intent = new Intent(this, ChatRefreshService.class);
-            startService(intent);
-            bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-            chatServiceBound = true;
+
+
+        // When Message sent from Broadcast Receiver is not empty
+        message = getIntent().getStringExtra("msg");
+        if (message != null) {
+            // Set the message
         }
 
-
-        //if (chatServiceBound) {
-        //    unbindService(mServiceConnection);
-        //    chatServiceBound = false;
-        //}
-        //Intent intent = new Intent(ShowChat.this,
-        //        ChatRefreshService.class);
-        //stopService(intent);
     }
 
 
     @Override
     protected void onStart() {
         super.onStart();
-        if (!serviceOn) {
-            Intent intent = new Intent(this, ChatRefreshService.class);
-            startService(intent);
-            bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-            serviceOn = true;
-        }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-
-        if (!chatServiceBound) {
-            unbindService(mServiceConnection);
-            //chatServiceBound = false;
-        }
     }
-
-
-
-
 
     public void choose(){
         final LayoutInflater inflater = this.getLayoutInflater();
@@ -146,8 +111,7 @@ public class ShowChat extends AppCompatActivity {
         cancel.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 fm.beginTransaction().replace(R.id.chat, new ChatRoomsActivity()).commit();
-//                Intent chatRoomsIntent = new Intent(ShowChat.this, ShowRooms.class);
-//                startActivity(chatRoomsIntent);
+                fragmentTransaction.addToBackStack(null);
                 ShowChat.this.alert.dismiss();
             }
         });
@@ -155,8 +119,7 @@ public class ShowChat extends AppCompatActivity {
         ok.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 fm.beginTransaction().replace(R.id.chat, new ShowAvailableUsers()).commit();
-//                Intent chatRoomsIntent = new Intent(ShowChat.this, ShowUsers.class);
-//                startActivity(chatRoomsIntent);
+                fragmentTransaction.addToBackStack(null);
                 ShowChat.this.alert.dismiss();
             }
         });
@@ -186,48 +149,105 @@ public class ShowChat extends AppCompatActivity {
         return true;
     }
 
-        @Override
-        public boolean onOptionsItemSelected (MenuItem item){
+    @Override
+    public boolean onOptionsItemSelected (MenuItem item){
 
-            int id = item.getItemId();
+        int id = item.getItemId();
 
-           if (id == R.id.chat_rooms) {
-               choose();
-                return true;
-            } else if (id == R.id.chat_rooms_landscape) {
-               showingRooms = true;
-               invalidateOptionsMenu();
-               fragmentTransaction = fm.beginTransaction();
-               if (roomsActivity == null) {
-                   fragmentTransaction.replace(R.id.Names_or_Rooms, new ChatRoomsActivity(), "Showing_Rooms");
-               }else {
-                   fragmentTransaction.replace(R.id.Names_or_Rooms, roomsActivity, "Showing_Rooms");
-               }
-               fragmentTransaction.addToBackStack(null);
-               fragmentTransaction.commit();
-                return true;
+        if (id == R.id.chat_rooms) {
+            choose();
+            invalidateOptionsMenu();
+            return true;
+        } else if (id == R.id.chat_rooms_landscape) {
+            showingRooms = true;
+            invalidateOptionsMenu();
+            fragmentTransaction = fm.beginTransaction();
+            if (roomsActivity == null) {
+                fragmentTransaction.replace(R.id.Names_or_Rooms, new ChatRoomsActivity(), "Showing_Rooms");
+            }else {
+                fragmentTransaction.replace(R.id.Names_or_Rooms, roomsActivity, "Showing_Rooms");
+            }
+            fragmentTransaction.addToBackStack(null);
+            fragmentTransaction.commit();
+            return true;
 
-            }else if (id == R.id.chat_users_landscape) {
-               showingRooms = false;
-               invalidateOptionsMenu();
-               fragmentTransaction = fm.beginTransaction();
-               if (userActivity == null) {
-                   fragmentTransaction.replace(R.id.Names_or_Rooms, new ShowAvailableUsers(), "Showing_Users");
-               }else{
-                   fragmentTransaction.replace(R.id.Names_or_Rooms, userActivity, "Showing_Users");
+        }else if (id == R.id.chat_users_landscape) {
+            showingRooms = false;
+            invalidateOptionsMenu();
+            fragmentTransaction = fm.beginTransaction();
+            if (userActivity == null) {
+                fragmentTransaction.replace(R.id.Names_or_Rooms, new ShowAvailableUsers(), "Showing_Users");
+            }else{
+                fragmentTransaction.replace(R.id.Names_or_Rooms, userActivity, "Showing_Users");
 
-               }
-               fragmentTransaction.addToBackStack(null);
-               fragmentTransaction.commit();
-               return true;
+            }
+            fragmentTransaction.addToBackStack(null);
+            fragmentTransaction.commit();
+            return true;
 
-           } else return super.onOptionsItemSelected(item);
+        } else return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+        Display display = ((WindowManager) this.getSystemService(this.WINDOW_SERVICE)).getDefaultDisplay();
+        Point screenSize = new Point(); // used to store screen size
+        display.getRealSize(screenSize); // store size in screenSize
+
+        try {
+            MenuItem settings = menu.findItem(R.id.action_settings);
+            MenuItem clear = menu.findItem(R.id.clear_chat);
+            MenuItem simulate = menu.findItem(R.id.simulate_message);
+
+            if (screenSize.x < screenSize.y) {
+
+                if (fm.findFragmentById(R.id.chat) != null && fm.findFragmentById(R.id.chat).getClass().toString().equals(ShowAvailableUsers.class.toString())) {
+
+                    if (settings != null) {
+                        settings.setVisible(false);
+                    }
+
+                    if (clear != null) {
+                        clear.setVisible(false);
+                    }
+
+                    if (simulate != null) {
+                        simulate.setVisible(false);
+                    }
+
+                }
+
+                if (fm.findFragmentById(R.id.chat) != null && fm.findFragmentById(R.id.chat).getClass().toString().equals(ChatRoomsActivity.class.toString())) {
+
+                    if (settings != null) {
+                        settings.setVisible(false);
+                    }
+
+                    if (clear != null) {
+                        clear.setVisible(false);
+                    }
+
+                    if (simulate != null) {
+                        simulate.setVisible(false);
+                    }
+
+                }
+
+
+            }
+
+        }catch (NullPointerException e){
+            return super.onPrepareOptionsMenu(menu);
         }
+
+        return super.onPrepareOptionsMenu(menu);
+
+    }
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-          savedInstanceState.putBoolean("Rooms", showingRooms);
-          savedInstanceState.putBoolean("ServiceState", chatServiceBound);
+        savedInstanceState.putBoolean("Rooms", showingRooms);
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -235,24 +255,6 @@ public class ShowChat extends AppCompatActivity {
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         showingRooms = savedInstanceState.getBoolean("Rooms");
-        showingRooms = savedInstanceState.getBoolean("Rooms");
     }
-    
-     private ServiceConnection mServiceConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            //chatServiceBound = false;
-        }
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            MyBinder myBinder = (MyBinder) service;
-            mBoundService = myBinder.getService();
-            //chatServiceBound = true;
-        }
-    };
-
-
 }
 

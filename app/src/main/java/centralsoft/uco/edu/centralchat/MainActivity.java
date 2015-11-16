@@ -1,15 +1,20 @@
 package centralsoft.uco.edu.centralchat;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,6 +25,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -31,6 +44,17 @@ public class MainActivity extends AppCompatActivity {
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int SELECT_PICTURE_ACTIVITY_REQUEST_CODE = 0;
+
+    GoogleCloudMessaging gcmObj;
+    String regId = "";
+    ProgressDialog prgDialog;
+    RequestParams params = new RequestParams();
+    private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+
+    AsyncTask<Void, Void, String> createRegIdTask;
+
+    public static final String REG_ID = "regId";
+    public static final String MAC_ID = "MacId";
 
     SharedPreferencesProcessing sharedPreferencesProcessing = new SharedPreferencesProcessing();
     Utils utils = new Utils();
@@ -54,6 +78,12 @@ public class MainActivity extends AppCompatActivity {
         //    startActivity(intent);
 
         //}
+
+        prgDialog = new ProgressDialog(this);
+        // Set Progress Dialog Text
+        prgDialog.setMessage("Please wait...");
+        // Set Cancelable as False
+        prgDialog.setCancelable(false);
 
         if (sharedPreferencesProcessing.retrieveNickname(MainActivity.this) != null) {
             nickname.setText(sharedPreferencesProcessing.retrieveNickname(MainActivity.this));
@@ -85,11 +115,21 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Please Select an Image", Toast.LENGTH_SHORT).show();
                 } else {
                     sharedPreferencesProcessing.storeNickname(MainActivity.this, nickname.getText().toString());
-                    Intent intent = new Intent(MainActivity.this, ShowChat.class);
 
-                    startActivity(intent);
-                    finish();
-                    //Authenticate with the server
+                    if (!TextUtils.isEmpty(getSharedPreferences("UserDetails",
+                            Context.MODE_PRIVATE).getString(REG_ID, ""))) {
+                        Intent intent = new Intent(MainActivity.this, ShowChat.class);
+
+                        startActivity(intent);
+                        finish();
+                    }
+                    else {
+                        //Authenticate with the server
+                        if (checkPlayServices()) {
+                            // Register Device in GCM Server
+                            registerInBackground(utils.getDeviceMacAddress(MainActivity.this));
+                        }
+                    }
 
                     //Toast.makeText(MainActivity.this, "Chat Activity Ready, " + sharedPreferencesProcessing.retrieveNickname(MainActivity.this), Toast.LENGTH_SHORT).show();
                     //Toast.makeText(MainActivity.this, "Device MAC: " + utils.getDeviceMacAddress(MainActivity.this), Toast.LENGTH_LONG).show();
@@ -274,6 +314,150 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(intent, 4);
             return super.onOptionsItemSelected(item);
         } else return true;
+    }
+
+    //GCM related routines
+    // AsyncTask to register Device in GCM Server
+    private void registerInBackground(final String macID) {
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... params) {
+                String msg = "";
+                try {
+                    if (gcmObj == null) {
+                        gcmObj = GoogleCloudMessaging
+                                .getInstance(MainActivity.this);
+                    }
+                    regId = gcmObj
+                            .register(GcmConstants.GOOGLE_PROJ_ID);
+                    msg = "Registration ID :" + regId;
+
+                } catch (IOException ex) {
+                    msg = "Error :" + ex.getMessage();
+                }
+                return msg;
+            }
+
+            @Override
+            protected void onPostExecute(String msg) {
+                if (!TextUtils.isEmpty(regId)) {
+                    // Store RegId created by GCM Server in SharedPref
+                    storeRegIdInSharedPref(MainActivity.this, regId, macID);
+                    //Toast.makeText(
+                    //        MainActivity.this,
+                    //        "Registered with GCM Server successfully.\n\n"
+                    //                + msg, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(
+                            MainActivity.this,
+                            "Reg ID Creation Failed.\n\nEither you haven't enabled Internet or GCM server is busy right now. Make sure you enabled Internet and try registering again after some time."
+                                    + msg, Toast.LENGTH_LONG).show();
+                }
+            }
+        }.execute(null, null, null);
+    }
+
+    // Store  RegId and Email entered by User in SharedPref
+    private void storeRegIdInSharedPref(Context context, String regId,
+                                        String macID) {
+        SharedPreferences prefs = getSharedPreferences("UserDetails",
+                Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(REG_ID, regId);
+        editor.putString(MAC_ID, macID);
+        editor.commit();
+        storeRegIdInServer();
+
+    }
+
+    // Share RegID with GCM Server
+    private void storeRegIdInServer() {
+        prgDialog.show();
+        params.put("regId", regId);
+        // Make RESTful webservice call using AsyncHttpClient object
+        AsyncHttpClient client = new AsyncHttpClient();
+        client.post(GcmConstants.APP_SERVER_URL, params,
+                new AsyncHttpResponseHandler() {
+                    // When the response returned by REST has Http
+                    // response code '200'
+                    @Override
+                    public void onSuccess(String response) {
+                        // Hide Progress Dialog
+                        prgDialog.hide();
+                        if (prgDialog != null) {
+                            prgDialog.dismiss();
+                        }
+                        //Toast.makeText(MainActivity.this,
+                        //        "Reg Id shared successfully with Web App ",
+                        //        Toast.LENGTH_LONG).show();
+                        //Intent i = new Intent(applicationContext,
+                        Intent i = new Intent(MainActivity.this,
+                                ShowChat.class);
+                        i.putExtra("regId", regId);
+                        startActivity(i);
+                        finish();
+                    }
+
+                    // When the response returned by REST has Http
+                    // response code other than '200' such as '404',
+                    // '500' or '403' etc
+                    @Override
+                    public void onFailure(int statusCode, Throwable error,
+                                          String content) {
+                        // Hide Progress Dialog
+                        prgDialog.hide();
+                        if (prgDialog != null) {
+                            prgDialog.dismiss();
+                        }
+                        // When Http response code is '404'
+                        if (statusCode == 404) {
+                            Toast.makeText(MainActivity.this,
+                                    "Requested resource not found",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                        // When Http response code is '500'
+                        else if (statusCode == 500) {
+                            Toast.makeText(MainActivity.this,
+                                    "Something went wrong at server end",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                        // When Http response code other than 404, 500
+                        else {
+                            Toast.makeText(
+                                    MainActivity.this,
+                                    "Unexpected Error occcured! [Most common Error: Device might "
+                                            + "not be connected to Internet or remote server is not up and running], check for other errors as well",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+    }
+
+    // Check if Google PlayServices is installed in Device or not
+    private boolean checkPlayServices() {
+        int resultCode = GooglePlayServicesUtil
+                .isGooglePlayServicesAvailable(this);
+        // When Play services not found in device
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
+                // Show Error dialog to install Play services
+                GooglePlayServicesUtil.getErrorDialog(resultCode, this,
+                        PLAY_SERVICES_RESOLUTION_REQUEST).show();
+            } else {
+                Toast.makeText(
+                        MainActivity.this,
+                        "This device doesn't support Play services, App will not work normally",
+                        Toast.LENGTH_LONG).show();
+                finish();
+            }
+            return false;
+        } else {
+            Toast.makeText(
+                    MainActivity.this,
+                    "This device supports Play services, App will work normally",
+                    Toast.LENGTH_LONG).show();
+        }
+        return true;
     }
 
 }

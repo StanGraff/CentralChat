@@ -2,14 +2,12 @@ package centralsoft.uco.edu.centralchat;
 
 import android.app.AlertDialog;
 import android.app.Fragment;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,17 +22,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.json.JSONException;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -69,6 +60,9 @@ public class ChatActivity extends Fragment {
     SharedPreferencesProcessing sharedPreferencesProcessing = new SharedPreferencesProcessing();
     Utils utils = new Utils();
 
+    ProgressDialog prgDialog;
+    RequestParams params = new RequestParams();
+
 
     public static ChatActivity newInstance(String chatID, Context ct){
         ChatActivity fragment = new ChatActivity();
@@ -82,6 +76,12 @@ public class ChatActivity extends Fragment {
 
         View view = inflater.inflate(R.layout.activity_chat, container, false);
         setHasOptionsMenu(true);
+
+        prgDialog = new ProgressDialog(getActivity());
+        // Set Progress Dialog Text
+        prgDialog.setMessage("Please wait...");
+        // Set Cancelable as False
+        prgDialog.setCancelable(false);
 
         btnSend = (Button) view.findViewById(R.id.send);
         inputMsg = (EditText) view.findViewById(R.id.message);
@@ -155,7 +155,7 @@ public class ChatActivity extends Fragment {
                 
                 Random rand = new Random();
                 String randomNum = Integer.toString(rand.nextInt((100 - 1) + 1) + 1);
-                new HttpPostTask().execute(randomNum, myName, "Recepient", msg);
+                sendMessageToTheServer(msg, myName, "Recepient");
 
                 if(chatID.equals("")){
                     Message s = new Message("Auto Response", "No user or room selected", "0", utils.getDate(), "0");
@@ -164,25 +164,7 @@ public class ChatActivity extends Fragment {
                 adapter.notifyDataSetChanged();
             }
         });
-        
-        btnSend.setOnLongClickListener(new View.OnLongClickListener() {
 
-            @Override
-            public boolean onLongClick(View v) {
-
-                //Random rand = new Random();
-                //String randomNum = Integer.toString(rand.nextInt((100 - 1) + 1) + 1);
-                //new HttpPostTask().execute(randomNum, myName, "Recepient", msg);
-
-                //Toast.makeText(getActivity(), "Long press", Toast.LENGTH_LONG).show();
-
-                new HttpGetTask().execute("gettingMessages");
-
-
-
-                return true;
-            }
-        });
         
         //listMessages.add(m);
         //adapter.notifyDataSetChanged();
@@ -303,7 +285,10 @@ public class ChatActivity extends Fragment {
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.chat_activity, menu);
+        if(menu.size() <= 1) {
+            inflater.inflate(R.menu.chat_activity, menu);
+        }
+
         super.onCreateOptionsMenu(menu, inflater);
 
     }
@@ -347,294 +332,67 @@ public class ChatActivity extends Fragment {
             return super.onOptionsItemSelected(item);
         }
     }
-    
-   
 
+    //Send message to the GCM server
+    private void sendMessageToTheServer(String message, String fromUser, String toUser) {
+        prgDialog.show();
+        params.put("message", message);
+        params.put("fromUser", fromUser);
+        params.put("toUser", toUser);
+        // Add additional parameters such as image, timestamp etc below.
 
-    private class HttpGetTask extends AsyncTask<String, Void, ArrayList<List<String>>> {
-
-
-        private static final String TAG = "HttpGetTask";
-
-        // Construct the URL for the OpenWeatherMap query
-        // Possible parameters are avaiable at OWM's forecast API page, at
-        // http://openweathermap.org/API#forecast
-        final String CHAT_BASE_URL =
-                "http://104.236.65.167:8080/CentralChat_No_Auth/message/view";
-
-        @Override
-        protected ArrayList<List<String>> doInBackground(String... params) {
-            // These two need to be declared outside the try/catch
-            // so that they can be closed in the finally block.
-            InputStream in = null;
-            HttpURLConnection httpUrlConnection = null;
-            ArrayList<List<String>> resultArray = null;
-            try {
-                Uri builtUri = Uri.parse(CHAT_BASE_URL);//.buildUpon()
-                //.appendQueryParameter("q", params[0]) // city
-                //.appendQueryParameter("mode", "json") // json format as result
-                //.appendQueryParameter("units", "metric") // metric unit
-                //.appendQueryParameter("cnt", "1")      // 1 day forecast
-                //.appendQueryParameter("type", "accurate")
-                //.build();
-
-                URL url = new URL(builtUri.toString());
-                httpUrlConnection = (HttpURLConnection) url.openConnection();
-                in = new BufferedInputStream(
-                        httpUrlConnection.getInputStream());
-                String data = readStream(in);
-                resultArray = JSONMessageData.getData(data);
-
-            } catch (MalformedURLException exception) {
-                Log.e(TAG, "MalformedURLException");
-            } catch (IOException exception) {
-                Log.e(TAG, "IOException");
-            } catch (JSONException e) {
-                Log.e(TAG, e.getMessage(), e);
-                e.printStackTrace();
-            } finally {
-                if (null != httpUrlConnection) {
-                    httpUrlConnection.disconnect();
-                }
-                if (in != null) {
-                    try {
-                        in.close();
-                    } catch (final IOException e) {
-                        Log.e(TAG, "Error closing stream", e);
+        // Make RESTful webservice call using AsyncHttpClient object
+        AsyncHttpClient client = new AsyncHttpClient();
+        client.post(GcmConstants.APP_SEND_MESSAGE_URL, params,
+                new AsyncHttpResponseHandler() {
+                    // When the response returned by REST has Http
+                    // response code '200'
+                    @Override
+                    public void onSuccess(String response) {
+                        // Hide Progress Dialog
+                        prgDialog.hide();
+                        if (prgDialog != null) {
+                            prgDialog.dismiss();
+                        }
+                        Toast.makeText(getActivity(),
+                                "Message sent",
+                                Toast.LENGTH_LONG).show();
                     }
-                }
-            }
 
-            //setMessageList(resultArray);
-
-            return resultArray;
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<List<String>> result) {
-
-
-            if (result == null) {
-                Toast.makeText(getActivity(),
-                        "Something went wrong in the server-client communication!",
-                        Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-
-            Toast.makeText(getActivity(),
-                    "Data Received! Process it now! \n" + result.toString(),
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
-
-
-
-
-    private class HttpGetUserMessagesTask extends AsyncTask<String, Void, ArrayList<List<String>>> {
-
-
-        private static final String TAG = "HttpGetTask";
-
-        // Construct the URL for the OpenWeatherMap query
-        // Possible parameters are avaiable at OWM's forecast API page, at
-        // http://openweathermap.org/API#forecast
-        final String CHAT_BASE_URL =
-                "http://104.236.65.167:8080/CentralChat_No_Auth/message/view/to/";
-
-        @Override
-        protected ArrayList<List<String>> doInBackground(String... params) {
-            // These two need to be declared outside the try/catch
-            // so that they can be closed in the finally block.
-            InputStream in = null;
-            HttpURLConnection httpUrlConnection = null;
-            ArrayList<List<String>> resultArray = null;
-            try {
-                Uri builtUri = Uri.parse(CHAT_BASE_URL);//.buildUpon()
-                //.appendQueryParameter("q", params[0]) // city
-                //.appendQueryParameter("mode", "json") // json format as result
-                //.appendQueryParameter("units", "metric") // metric unit
-                //.appendQueryParameter("cnt", "1")      // 1 day forecast
-                //.appendQueryParameter("type", "accurate")
-                //.build();
-
-                URL url = new URL(builtUri.toString());
-                httpUrlConnection = (HttpURLConnection) url.openConnection();
-                in = new BufferedInputStream(
-                        httpUrlConnection.getInputStream());
-                String data = readStream(in);
-                resultArray = JSONMessageData.getData(data);
-
-            } catch (MalformedURLException exception) {
-                Log.e(TAG, "MalformedURLException");
-            } catch (IOException exception) {
-                Log.e(TAG, "IOException");
-            } catch (JSONException e) {
-                Log.e(TAG, e.getMessage(), e);
-                e.printStackTrace();
-            } finally {
-                if (null != httpUrlConnection) {
-                    httpUrlConnection.disconnect();
-                }
-                if (in != null) {
-                    try {
-                        in.close();
-                    } catch (final IOException e) {
-                        Log.e(TAG, "Error closing stream", e);
-                    }
-                }
-            }
-
-
-            Toast.makeText(getActivity(),
-                    "Data Received! Process it now! \n" + resultArray.toString(),
-                    Toast.LENGTH_SHORT).show();
-
-            //setMessageList(resultArray);
-
-            return resultArray;
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<List<String>> result) {
-
-
-            if (result == null) {
-                Toast.makeText(getActivity(),
-                        "Something went wrong in the server-client communication!",
-                        Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-
-            Toast.makeText(getActivity(),
-                    "Data Received! Process it now! \n" + result.toString(),
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
-
-
-
-
-
-        private class HttpPostTask extends AsyncTask<String, Void, ArrayList<List<String>>> {
-
-
-            private static final String TAG = "HttpGetTask";
-
-            final String CHAT_BASE_URL =
-                    "http://104.236.65.167:8080/CentralChat_No_Auth/message/send/";
-
-            @Override
-            protected ArrayList<List<String>> doInBackground(String... params) {
-                // These two need to be declared outside the try/catch
-                // so that they can be closed in the finally block.
-                InputStream in = null;
-                HttpURLConnection conn = null;
-                ArrayList<List<String>> resultArray = null;
-                try {
-
-                    String builtUri = CHAT_BASE_URL + URLEncoder.encode(params[0].trim()) + "/" + URLEncoder.encode(params[1].trim())
-                            + "/" + URLEncoder.encode(params[2].trim()) + "/" + URLEncoder.encode(params[3].trim());
-
-
-                    //URL url = new URL(builtUri.toString());
-                    //httpUrlConnection = (HttpURLConnection) url.openConnection();
-                    //in = new BufferedInputStream(
-                    //        httpUrlConnection.getInputStream());
-                    //String data = readStream(in);
-
-                    URL url = new URL(builtUri);
-
-                    //URL url = new URL(builtUri.toString());
-                    conn = (HttpURLConnection) url.openConnection();
-
-                    //httpUrlConnection.connect();
-
-
-                    //conn.setRequestProperty("Content-type", "application/json");
-                    conn.setRequestProperty("User-agent", "Fiddler");
-                    conn.setRequestProperty("Host", "104.236.65.167:8080");
-                    //conn.setRequestProperty("Authorization", "4321");
-                    //conn.setRequestProperty("charset", "utf-8");
-                    conn.setRequestMethod("GET");
-                    conn.setDoInput(false);
-                    conn.setDoOutput(false);
-                    conn.connect();
-
-
-
-                    int responseCode = conn.getResponseCode();
-                    String message=conn.getResponseMessage();
-                    //
-                    System.out.println(message);
-
-
-
-
-                    //resultArray = JSONMessageData.getData(data);
-
-                } catch (MalformedURLException exception) {
-                    Log.e(TAG, "MalformedURLException");
-                } catch (IOException exception) {
-                    Log.e(TAG, "IOException");
-                }
-                  catch(Exception ex)
-                  {
-                      Log.e(TAG, "Plain exception");
-                  }
-                finally {
-                    if (null != conn) {
-                        conn.disconnect();
-                    }
-                    if (in != null) {
-                        try {
-                            in.close();
-                        } catch (final IOException e) {
-                            Log.e(TAG, "Error closing stream", e);
+                    // When the response returned by REST has Http
+                    // response code other than '200' such as '404',
+                    // '500' or '403' etc
+                    @Override
+                    public void onFailure(int statusCode, Throwable error,
+                                          String content) {
+                        // Hide Progress Dialog
+                        prgDialog.hide();
+                        if (prgDialog != null) {
+                            prgDialog.dismiss();
+                        }
+                        // When Http response code is '404'
+                        if (statusCode == 404) {
+                            Toast.makeText(getActivity(),
+                                    "Requested resource not found",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                        // When Http response code is '500'
+                        else if (statusCode == 500) {
+                            Toast.makeText(getActivity(),
+                                    "Something went wrong at server end",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                        // When Http response code other than 404, 500
+                        else {
+                            Toast.makeText(
+                                    getActivity(),
+                                    "Unexpected Error occcured! [Most common Error: Device might "
+                                            + "not be connected to Internet or remote server is not up and running], check for other errors as well",
+                                    Toast.LENGTH_LONG).show();
                         }
                     }
-                }
-
-                return null;
-            }
+                });
+    }
 
 
-            @Override
-            protected void onPostExecute(ArrayList<List<String>> result) {
-
-
-                Toast.makeText(getActivity(),
-                        "Data sent!" +
-                                "",
-                        Toast.LENGTH_SHORT).show();
-
-                return;
-            }
-        }
-
-
-        private String readStream(InputStream in) {
-            BufferedReader reader = null;
-            StringBuffer data = new StringBuffer("");
-            try {
-                reader = new BufferedReader(new InputStreamReader(in));
-                String line = "";
-                while ((line = reader.readLine()) != null) {
-                    data.append(line);
-                }
-            } catch (IOException e) {
-                Log.e("HttpGetTask", "IOException");
-            } finally {
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-            return data.toString();
-        }
-    
 }

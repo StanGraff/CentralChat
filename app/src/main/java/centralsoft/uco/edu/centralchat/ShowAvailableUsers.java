@@ -54,11 +54,11 @@ public class ShowAvailableUsers extends Fragment {
                 //getActivity().getFragmentManager().beginTransaction().replace(R.id.chat, ChatActivity.newInstance(Selecteditem, getActivity())).commit();
                 getActivity().getFragmentManager().beginTransaction().replace(R.id.chat, new ChatActivity()).commit();
                 Toast.makeText(getActivity(), Selecteditem + " Selected", Toast.LENGTH_SHORT).show();
-
             }
         });
         return view;
     }
+
 /*
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

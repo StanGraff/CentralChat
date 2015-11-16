@@ -2,14 +2,9 @@ package centralsoft.uco.edu.centralchat;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -102,7 +97,7 @@ public class MessageListAdapter extends BaseAdapter {
             m.setViewed("1");
         }
 
-
+/*
         if (messageList.get(position).isMyMsg().equals("0") && m.isViewed().equals("0")) {
             Intent intent = new Intent(context, ShowChat.class);
             Uri soundUri  = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
@@ -124,7 +119,7 @@ public class MessageListAdapter extends BaseAdapter {
                     notificationBuilder.build());
         }
         m.setViewed("1");
-
+*/
         return convertView;
     }
 }
