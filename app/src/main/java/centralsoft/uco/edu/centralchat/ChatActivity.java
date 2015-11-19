@@ -7,7 +7,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -30,6 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static com.google.android.gms.internal.zzid.runOnUiThread;
+
 public class ChatActivity extends Fragment {
 
     private boolean phoneDevice = true; // used to force portrait mode
@@ -46,6 +51,7 @@ public class ChatActivity extends Fragment {
     private Button cancel, ok;
     private int i;
     private String chatID = "";
+    private PlaySound sound;
     
     private ArrayList<List<String>> msgList;
 
@@ -63,6 +69,7 @@ public class ChatActivity extends Fragment {
     ProgressDialog prgDialog;
     RequestParams params = new RequestParams();
 
+    GcmBroadcastReceiver mGBR;
 
     public static ChatActivity newInstance(String chatID, Context ct){
         ChatActivity fragment = new ChatActivity();
@@ -77,6 +84,7 @@ public class ChatActivity extends Fragment {
         View view = inflater.inflate(R.layout.activity_chat, container, false);
         setHasOptionsMenu(true);
 
+        sound = new PlaySound(getActivity().getApplicationContext());
         prgDialog = new ProgressDialog(getActivity());
         // Set Progress Dialog Text
         prgDialog.setMessage("Please wait...");
@@ -99,6 +107,7 @@ public class ChatActivity extends Fragment {
             }
         }
 
+        //getActivity().setTitle(chatID);
         adapter = new MessageListAdapter(getActivity(), messageList, iconList);
         listViewMessages.setAdapter(adapter);
 
@@ -115,6 +124,8 @@ public class ChatActivity extends Fragment {
                     adapter.notifyDataSetChanged();
                 }
             }
+        } else {
+            chatID = "Recepient";
         }
 
         //temp = messageList = new ArrayList<Message>();
@@ -143,31 +154,63 @@ public class ChatActivity extends Fragment {
             getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
 
+        btnSend.setBackgroundColor(Color.parseColor("#434343"));
+
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String myName = sharedPreferencesProcessing.retrieveNickname(getActivity());
                 String msg = inputMsg.getText().toString();
-                Message m = new Message(myName, msg, isMyMsg, utils.getDate(), "0");
-                messageList.add(m);
-                adapter.notifyDataSetChanged();
-                inputMsg.setText("");
-                
-                Random rand = new Random();
-                String randomNum = Integer.toString(rand.nextInt((100 - 1) + 1) + 1);
-                sendMessageToTheServer(msg, myName, "Recepient");
+                if (!msg.isEmpty()) {
+                    Message m = new Message(myName, msg, isMyMsg, utils.getDate(), "0");
+                    messageList.add(m);
+                    adapter.notifyDataSetChanged();
+                    inputMsg.setText("");
 
-                if(chatID.equals("")){
-                    Message s = new Message("Auto Response", "No user or room selected", "0", utils.getDate(), "0");
-                    messageList.add(s);
+                    Random rand = new Random();
+                    String randomNum = Integer.toString(rand.nextInt((100 - 1) + 1) + 1);
+                    sendMessageToTheServer(msg, myName, chatID);
+
+                    if (chatID.equals("")) {
+                        Message s = new Message("Auto Response", "No user or room selected", "0", utils.getDate(), "0");
+                        messageList.add(s);
+                    }
+                    sound.playSent();
+                    adapter.notifyDataSetChanged();
+                    btnSend.setEnabled(false);
+                    btnSend.setBackgroundColor(Color.parseColor("#434343"));
                 }
-                adapter.notifyDataSetChanged();
+            }
+        });
+
+        inputMsg.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (count >= 0)
+                    btnSend.setEnabled(true);
+                btnSend.setBackgroundColor(Color.parseColor("#3F51B5"));
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
             }
         });
 
         
         //listMessages.add(m);
         //adapter.notifyDataSetChanged();
+
+        Thread myThread = null;
+
+        Runnable runnable = new CountDownRunner();
+        myThread = new Thread(runnable);
+        myThread.start();
 
         return view;
     }
@@ -253,6 +296,8 @@ public class ChatActivity extends Fragment {
     public void onPause() {
         super.onPause();
 
+//        unregisterGcmReceiver();
+
         if (messageList != null && !chatID.equals("")) {
             sharedPreferencesProcessing.storeChat((ArrayList<Message>) messageList, chatID, getActivity());
             sharedPreferencesProcessing.storeIcons((ArrayList<UserIcon>) iconList, getActivity());
@@ -262,6 +307,8 @@ public class ChatActivity extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+
+//        registerGcmReceiver();
 
         if (sharedPreferencesProcessing.getChat(chatID, getActivity()) != null) {
             if (messageList.size() <= 0 && sharedPreferencesProcessing.getChat(chatID, getActivity()).size() > 0) {
@@ -333,6 +380,7 @@ public class ChatActivity extends Fragment {
         }
     }
 
+
     //Send message to the GCM server
     private void sendMessageToTheServer(String message, String fromUser, String toUser) {
         prgDialog.show();
@@ -394,5 +442,138 @@ public class ChatActivity extends Fragment {
                 });
     }
 
+//    @Override
+//    public void onStart(){
+//        super.onStart();
+//        registerGcmReceiver();
+//    }
+//
+//    @Override
+//    public void onStop(){
+//        super.onStop();
+//        unregisterGcmReceiver();
+//    }
+//
+//    @Override
+//    public void onDestroy(){
+//        super.onDestroy();
+//        //unregisterReceiver();
+//    }
 
+
+//    private void registerGcmReceiver(){
+//        mGBR = new GcmBroadcastReceiver() {
+//            @Override
+//            public void onReceive(Context context, Intent intent) {
+//                Bundle extras = intent.getExtras();
+//                GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(getActivity());
+//
+//                String messageType = gcm.getMessageType(intent);
+//
+//                if(!extras.isEmpty()){
+//                    if (GoogleCloudMessaging.MESSAGE_TYPE_SEND_ERROR
+//                            .equals(messageType)) {
+//                        ComponentName comp = new ComponentName(context.getPackageName(),
+//                                GcmNotificationIntentService.class.getName());
+//                        startWakefulService(context, (intent.setComponent(comp)));
+//                        setResultCode(Activity.RESULT_OK);
+//                    } else if (GoogleCloudMessaging.MESSAGE_TYPE_DELETED
+//                            .equals(messageType)) {
+//                        ComponentName comp = new ComponentName(context.getPackageName(),
+//                                GcmNotificationIntentService.class.getName());
+//                        startWakefulService(context, (intent.setComponent(comp)));
+//                        setResultCode(Activity.RESULT_OK);
+//                    } else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE
+//                            .equals(messageType)) {
+//                        String to = extras.get(GcmConstants.MSG_TO).toString();
+//                        String from = extras.get(GcmConstants.MSG_FROM).toString();
+//                        String msg = extras.get(GcmConstants.MSG).toString();
+//                        if(sharedPreferencesProcessing.getChatID(getActivity()).equals(from)){
+//                            if(sharedPreferencesProcessing.retrieveNickname(getActivity()).equals(to)){
+//                                Message m = new Message(from, msg, "0", utils.getDate(), "1");
+//                                messageList.add(m);
+//                                adapter.notifyDataSetChanged();
+//                                setResultCode(Activity.RESULT_OK);
+//                            }else{
+//                                setResultCode(Activity.RESULT_OK);
+//                            }
+//                        }else{
+//                            ComponentName comp = new ComponentName(context.getPackageName(),
+//                                    GcmNotificationIntentService.class.getName());
+//                            startWakefulService(context, (intent.setComponent(comp)));
+//                            setResultCode(Activity.RESULT_OK);
+//                        }
+//                    }
+//                }
+//            }
+//        };
+//        try{
+//            getActivity().registerReceiver(mGBR , new IntentFilter("CHAT_FRAGMENT"));
+//        }catch(Exception e){
+//            Toast.makeText(getActivity(), e.getMessage().toString(), Toast.LENGTH_LONG).show();
+//        }
+//        //getActivity().registerReceiver(mGBR , new IntentFilter("CHAT_FRAGMENT"));
+//    }
+//
+//    private void unregisterGcmReceiver(){
+//        try{
+//            getActivity().unregisterReceiver(mGBR);
+//        }catch(Exception e){
+//
+//        }
+//
+//    }
+
+    public void doWork() {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                try {
+                    if (sharedPreferencesProcessing.getRecievedChat(chatID, getActivity().getApplicationContext()) != null) {
+                        if (sharedPreferencesProcessing.getRecievedChat(chatID, getActivity().getApplicationContext()).size() > 0) {
+                            List<Message> temp;
+                            temp = sharedPreferencesProcessing.getRecievedChat(chatID, getActivity().getApplicationContext());
+                            for (int i = 0; i < temp.size(); i++) {
+                                messageList.add(temp.get(i));
+//                                Message m = messageList.get(i);
+//                                if(sharedPreferencesProcessing.getChatID(getActivity().getApplicationContext()).equals(m.getMsgFrom())){
+//                                    messageList.add(temp.get(i));
+//                                    sound.playReceived();
+//                                    adapter.notifyDataSetChanged();
+//                                }else{
+//                                    if(!sharedPreferencesProcessing.retrieveNickname(getActivity().getApplicationContext()).equals(m.getMsgFrom())){
+//                                        ArrayList<Message> Ml = sharedPreferencesProcessing.getChat(m.getMsgFrom(), getActivity().getApplicationContext());
+//                                        Ml.add(m);
+//                                        sharedPreferencesProcessing.storeChat(Ml, m.getMsgFrom(), getActivity().getApplicationContext());
+//                                    }
+//                                }
+                            }
+                            temp.clear();
+                            sharedPreferencesProcessing.storeRecieved((ArrayList<Message>) temp, chatID, getActivity().getApplicationContext());
+                            adapter.notifyDataSetChanged();
+                            sound.playReceived();
+                        }//else{
+                        //   Toast.makeText(getActivity(), "Size < 0", Toast.LENGTH_SHORT).show();
+                        //  }
+                    }//else{
+                    // Toast.makeText(getActivity(), "Received Null", Toast.LENGTH_SHORT).show();
+                    //}
+                } catch (Exception e) {
+                }
+            }
+        });
+    }
+
+    class CountDownRunner implements Runnable {
+        public void run() {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    doWork();
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } catch (Exception e) {
+                }
+            }
+        }
+    }
 }

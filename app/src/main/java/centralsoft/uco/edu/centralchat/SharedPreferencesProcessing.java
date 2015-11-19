@@ -106,6 +106,15 @@ public class SharedPreferencesProcessing {
         edit.commit();
     }
 
+    public void storeAvailableUsers(ArrayList<String> users, Context ct) {
+        SharedPreferences shre = PreferenceManager.getDefaultSharedPreferences(ct);
+        SharedPreferences.Editor edit = shre.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(users);
+        edit.putString("availableUsers", json);
+        edit.commit();
+    }
+
     public ArrayList getChat(String chatID, Context ct) {
         SharedPreferences shre = PreferenceManager.getDefaultSharedPreferences(ct);
         Gson gson = new Gson();
@@ -137,6 +146,19 @@ public class SharedPreferencesProcessing {
         return icons;
     }
 
+    public ArrayList getAvailableUsers(Context ct) {
+        SharedPreferences shre = PreferenceManager.getDefaultSharedPreferences(ct);
+        Gson gson = new Gson();
+        String json = shre.getString("availableUsers", "");
+        if (json.equals("")) {
+            return null;
+        }
+        Type type = new TypeToken<List<String>>() {
+        }.getType();
+        ArrayList<String> availableUsers = gson.fromJson(json, type);
+        return availableUsers;
+    }
+
     public void setChatID(String chatID, Context ct){
         SharedPreferences shre = PreferenceManager.getDefaultSharedPreferences(ct);
         SharedPreferences.Editor edit = shre.edit();
@@ -152,6 +174,33 @@ public class SharedPreferencesProcessing {
 
     public void storeSessionIdNumber(Context ct) {
 
+    }
+
+    public ArrayList getRecievedChat(String chatID, Context ct) {
+        SharedPreferences shre = PreferenceManager.getDefaultSharedPreferences(ct);
+        Gson gson = new Gson();
+        String json = shre.getString(chatID + "1", "");
+        if (json.equals("")) {
+            return null;
+        }
+        Type type = new TypeToken<List<Message>>() {
+        }.getType();
+        ArrayList<Message> messages;
+        try {
+            messages = gson.fromJson(json, type);
+            return messages;
+        } catch (JsonSyntaxException e) {
+            return null;
+        }
+    }
+
+    public void storeRecieved(ArrayList<Message> chat, String chatID, Context ct) {
+        SharedPreferences shre = PreferenceManager.getDefaultSharedPreferences(ct);
+        SharedPreferences.Editor edit = shre.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(chat);
+        edit.putString(chatID + "1", json);
+        edit.commit();
     }
 
     public Bitmap resizeImageForImageView(Bitmap bitmap) {

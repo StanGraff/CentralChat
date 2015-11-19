@@ -58,7 +58,7 @@ public class MessageListAdapter extends BaseAdapter {
         LayoutInflater mInflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
 
         if (messageList.get(position).isMyMsg().equals("1")) {
-            convertView = mInflater.inflate(R.layout.sent_message_item, null);
+            //convertView = mInflater.inflate(R.layout.sent_message_item, null);
             convertView = mInflater.inflate(R.layout.sent_message_item, null);
             ImageView img = (ImageView) convertView.findViewById(R.id.userIcon);
             SharedPreferencesProcessing spp = new SharedPreferencesProcessing();
@@ -81,6 +81,7 @@ public class MessageListAdapter extends BaseAdapter {
                     }
                 }
             }
+            img.setImageResource(R.drawable.chat_central_logo);
         }
 
         TextView lblFrom = (TextView) convertView.findViewById(R.id.lblMsgFrom);

@@ -9,6 +9,8 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 public class ShowAvailableUsers extends Fragment {
 
     private ListView userList;
@@ -38,6 +40,16 @@ public class ShowAvailableUsers extends Fragment {
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.activity_show_available_users, container, false);
+
+        SharedPreferencesProcessing spp = new SharedPreferencesProcessing();
+        ArrayList<String> users;
+        if (spp.getAvailableUsers(getActivity()) != null) {
+            users = spp.getAvailableUsers(getActivity());
+            listOfUsers = new String[users.size()];
+            for (int i = 0; i < users.size(); i++) {
+                listOfUsers[i] = users.get(i);
+            }
+        }
 
         ChatRoomListAdapter adapter = new ChatRoomListAdapter(getActivity(), listOfUsers);
         userList = (ListView) view.findViewById(R.id.userList);
